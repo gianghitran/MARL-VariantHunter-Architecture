@@ -1,0 +1,9 @@
+# Comment out one of the endpoints.
+
+# Ngrok endpoint
+# llm_endpoint: "https://6ce7-34-132-37-158.ngrok-free.app"
+# llm_model: "gpt-oss:20b"
+
+# Local endpoint
+llm_endpoint: "http://10.0.1.12:11434"
+llm_model: "gemma4:31b"

@@ -1,0 +1,176 @@
+58
+MP*-grep
+MF-LinEnum.sh
+MP*-git
+SF-anaconda-ks.cfg
+TF-resolv.c
+TP-uname
+MF-raft-large-directories.txt
+SO-192.168.47.155
+MF-2017.pl
+SF-image.php
+SF-1.zip
+MP-nl
+SF-bash_completion.sh
+MP*-ip
+MP-cat
+SO-192.168.10.131
+MF-f.r
+MP*-ls
+MF-target.example.c
+TP-less
+MF-1.zip
+SF-settings.php
+SO-192.168.206.137
+MP-bash
+MF-td.c
+MF-syslog.c
+MF-payload_33.sh
+MP-python_33
+SO-192.168.230.162
+MF-config_33.cfg
+MF-payload_38.sh
+MP-python_38
+SO-192.168.93.3
+MF-config_38.cfg
+MF-payload_Carbanak.sh
+MP-python_Carbanak
+SO-192.168.103.206
+MF-config_Carbanak.cfg
+SO-192.168.37.153
+MF-payload_FIN7.sh
+MP-python_FIN7
+SO-192.168.64.192
+MF-config_FIN7.cfg
+SO-192.168.119.135
+SO-192.168.196.192
+SO-192.168.27.163
+MF-payload_29.sh
+MP-python_29
+SO-192.168.96.244
+MF-config_29.cfg
+SO-192.168.177.128
+MF-payload_32.sh
+MP-python_32
+SO-192.168.87.54
+MF-config_32.cfg
+SO-192.168.156.214
+MP-bash_29
+SO-192.168.24.78
+116
+0 1 WR
+0 2 FR
+2 1 WR
+0 3 WR
+2 3 WR
+0 4 WR
+2 4 WR
+0 5 FR
+5 1 RD
+2 5 IJ
+5 3 UK
+0 6 WR
+2 6 WR
+0 7 ST
+7 2 RF
+0 8 WR
+2 8 WR
+0 9 RD
+2 9 UK
+0 10 UK
+11 1 RD
+11 4 RD
+11 6 WR
+7 11 RF
+11 8 RD
+11 12 WR
+13 4 EX
+13 6 WR
+13 7 ST
+13 8 RD
+13 12 CD
+14 4 RD
+14 6 UK
+11 15 ST
+13 15 ST
+14 7 ST
+14 8 RD
+11 14 UK
+13 16 WR
+17 8 WR
+17 12 RD
+17 15 ST
+17 16 RD
+13 18 WR
+17 18 WR
+19 12 WR
+13 19 IJ
+19 15 ST
+19 16 RD
+17 19 IJ
+19 18 WR
+13 20 EX
+17 20 WR
+19 20 UK
+13 21 WR
+17 21 RD
+13 22 ST
+22 17 RF
+15 23 RF
+23 16 WR
+23 18 UK
+17 24 WR
+17 25 WR
+26 27 EX
+27 28 ST
+28 27 RF
+27 29 WR
+30 31 EX
+31 32 ST
+32 31 RF
+31 33 WR
+34 35 EX
+35 36 ST
+36 35 RF
+35 37 WR
+34 35 EX
+35 38 ST
+38 35 RF
+35 37 WR
+39 40 EX
+40 41 ST
+41 40 RF
+40 42 WR
+39 40 EX
+40 43 ST
+43 40 RF
+40 42 WR
+39 40 EX
+40 44 ST
+44 40 RF
+40 42 WR
+26 27 EX
+27 45 ST
+45 27 RF
+27 29 WR
+46 47 EX
+47 48 ST
+48 47 RF
+47 49 WR
+30 31 EX
+31 50 ST
+50 31 RF
+31 33 WR
+51 52 EX
+52 53 ST
+53 52 RF
+52 54 WR
+51 52 EX
+52 55 ST
+55 52 RF
+52 54 WR
+56 46 WR
+46 47 EX
+47 57 ST
+57 47 RF
+47 49 WR

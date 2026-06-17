@@ -1,0 +1,11 @@
+# THREATIFY -> TAGAPT pipeline dependencies
+
+torch>=1.9.0
+numpy>=1.19.0
+networkx>=2.5
+graphviz>=0.16
+matplotlib>=3.5
+
+# Optional, only needed when running the original MaskGAF model paths that touch
+# environment.py/sascorer.py.
+rdkit
