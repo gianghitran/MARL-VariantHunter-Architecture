@@ -2,8 +2,8 @@
 
 - DOT: `D:\notebook_UITNam3\Nam3_ki2\dacn\TAGAPT\TAGAPT_APTDetection\Attack_Agent\result_handoff\APT32/APT32_aligned_provenance.dot`
 - Quality valid: `True`
-- Nodes: `43`
-- Edges: `57`
+- Nodes: `41`
+- Edges: `56`
 - Clusters: `4`
 - Total reward: `0.7778`
 - Transition quality: `0.6946`

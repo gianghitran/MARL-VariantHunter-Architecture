@@ -1,0 +1,635 @@
+219
+MP*-grep
+MF-LinEnum.sh
+MP*-git
+SF-anaconda-ks.cfg
+TF-resolv.c
+TP-uname
+MF-raft-large-directories.txt
+SO-192.168.47.155
+MF-2017.pl
+SF-image.php
+SF-1.zip
+MP-nl
+SF-bash_completion.sh
+MP*-ip
+MP-cat
+SO-192.168.10.131
+MF-f.r
+MP*-ls
+MF-target.example.c
+TP-less
+MF-1.zip
+SF-settings.php
+SO-192.168.206.137
+MP-bash
+MF-td.c
+MF-syslog.c
+bash
+python3
+sh
+stager_bb.elf
+bot_de1c.elf
+192.168.64.230:80
+run_f6.sh
+setup_47.sh
+implant_94.elf
+backdoor_d6.sh
+payload_d5.sh
+rootkit_5d.elf
+rootkit_d419.elf
+exfil_data_s1s2.bin
+setup_be.sh
+stager_2a.elf
+setup_ef.sh
+output_ae.txt
+payload_15.sh
+util_d2.pl
+implant_3021.elf
+192.168.130.223:80
+stage2_b9.bin
+ruby
+init_c3.sh
+loader_8d.py
+perl
+init_c2.sh
+init_3b.sh
+rootkit_5c.elf
+stager_5af5.elf
+creds_5c.txt
+rootkit_b7.elf
+c2client_fc.py
+192.168.223.55:443
+scanner_68.py
+rootkit_e2.elf
+scanner_e0.py
+shellcode_3683.elf
+exfil_bb.py
+shellcode_56.elf
+backdoor_f1.sh
+stager_b2.elf
+scanner_aa.py
+exploit_76.sh
+exfil_2e.py
+shellcode_71ec.elf
+rootkit_b3.elf
+hosts_25.txt
+payload_23.sh
+hosts_69.txt
+192.168.60.195:443
+rootkit_45.elf
+exploit_53.sh
+rootkit_41dd.elf
+setup_55.sh
+implant_6c.elf
+output_2a.txt
+implant_9b.elf
+exploit_68.sh
+192.168.7.140:443
+config_0f.txt
+rootkit_6cd4.elf
+192.168.203.126:80
+implant_43.elf
+loader_22.py
+data_7f.txt
+rootkit_e6.elf
+dropper_9b.py
+cron
+at
+systemd
+persistence_c3.service
+job_config_a7.d
+job_config_28.d
+agent_1d.service
+timer_9c.d
+schedule_c9.crontab
+init_09.sh
+agent_0d.py
+implant_878d.elf
+192.168.78.61:22
+data_2f.txt
+stager_a2.elf
+rootkit_30.elf
+implant_23.elf
+scanner_79.py
+run_70.sh
+loader_17.py
+config_82.txt
+rootkit_4d01.elf
+192.168.203.37:443
+init_4d.sh
+setup_fa.sh
+bot_d4.elf
+data_0d.txt
+creds_40.txt
+init_2d.sh
+rootkit_b670.elf
+exfil_data_s2s3.sh
+backdoor_65.sh
+agent_f0.py
+run_7e.sh
+payload_c8.sh
+run_2a.sh
+bot_2e.elf
+rootkit_dfc2.elf
+staging_payload_s3s4.sh
+loader_54.py
+bot_98.elf
+c2client_f3.py
+config_0d.txt
+loader_c1.py
+implant_1e70.elf
+exfil_b8.py
+agent_54.py
+exfil_f7.py
+output_cf.txt
+init_9d.sh
+config_72.txt
+shellcode_7307.elf
+stager_14.elf
+hosts_1b.txt
+agent_cf.py
+loader_4a.py
+payload_ce.sh
+192.168.7.94:443
+hosts_05.txt
+rootkit_5ac5.elf
+c2client_62.py
+bot_79.elf
+implant_d1.elf
+creds_ae.txt
+payload_cc.sh
+stager_f9.elf
+staging_payload_s1s2.sh
+scanner_43.pl
+exploit_27.rb
+shellcode_fc2c.elf
+192.168.139.143:22
+exploit_10.rb
+payload_dc.bin
+exploit_d8.rb
+scanner_e4.pl
+util_79.pl
+init_79.sh
+payload_de.sh
+shellcode_45f7.elf
+loader_16.py
+creds_a0.txt
+output_62.txt
+192.168.38.39:22
+shellcode_ca.elf
+shellcode_2aa7.elf
+payload_c6.sh
+dropper_c8.py
+data_3f.txt
+rootkit_3f.elf
+creds_a6.txt
+scanner_54.py
+rootkit_3b04.elf
+192.168.183.80:80
+bot_1b.elf
+rootkit_35.elf
+run_73.sh
+loader_f4.py
+exfil_88.py
+bot_78.elf
+implant_b61e.elf
+192.168.235.51:80
+scanner_55.py
+stager_66.elf
+shellcode_bc.elf
+python
+exploit_61.rb
+exploit_9d.pl
+stager_8eeb.elf
+lateral_tool_s2s3.bin
+init_7f.sh
+exploit_f5.sh
+stager_78.elf
+exploit_5d.pl
+dropper_7d.py
+scanner_12.rb
+payload_ee.rb
+payload_a2.rb
+scanner_6b.pl
+creds_73.txt
+bot_a709.elf
+rootkit_01.elf
+loader_25.py
+init_3d.sh
+data_08.txt
+414
+0 1 WR
+0 2 FR
+2 1 WR
+0 3 WR
+2 3 WR
+0 4 WR
+2 4 WR
+0 5 FR
+5 1 RD
+2 5 IJ
+5 3 UK
+0 6 WR
+2 6 WR
+0 7 ST
+7 2 RF
+0 8 WR
+2 8 WR
+0 9 RD
+2 9 UK
+0 10 UK
+11 1 RD
+11 4 RD
+11 6 WR
+7 11 RF
+11 8 RD
+11 12 WR
+13 4 EX
+13 6 WR
+13 7 ST
+13 8 RD
+13 12 CD
+14 4 RD
+14 6 UK
+11 15 ST
+13 15 ST
+14 7 ST
+14 8 RD
+11 14 UK
+13 16 WR
+17 8 WR
+17 12 RD
+17 15 ST
+17 16 RD
+13 18 WR
+17 18 WR
+19 12 WR
+13 19 IJ
+19 15 ST
+19 16 RD
+17 19 IJ
+19 18 WR
+13 20 EX
+17 20 WR
+19 20 UK
+13 21 WR
+17 21 RD
+13 22 ST
+22 17 RF
+15 23 RF
+23 16 WR
+23 18 UK
+17 24 WR
+17 25 WR
+26 27 EX
+26 28 EX
+26 29 WR
+26 30 EX
+26 31 ST
+32 26 RD
+33 26 RD
+27 34 WR
+27 35 WR
+34 28 RD
+35 28 RD
+28 36 WR
+29 27 RD
+30 27 RD
+26 27 EX
+26 28 EX
+26 37 WR
+26 38 EX
+26 39 WR
+40 26 RD
+27 41 WR
+41 28 RD
+28 42 WR
+28 43 WR
+37 27 RD
+38 28 RD
+38 26 RD
+26 27 EX
+26 44 WR
+26 45 WR
+26 46 EX
+26 47 ST
+48 26 RD
+48 49 RD
+27 50 WR
+27 51 WR
+27 52 EX
+50 49 RD
+51 52 RD
+52 53 WR
+52 49 EX
+49 54 WR
+44 49 RD
+26 28 EX
+26 55 WR
+26 56 EX
+57 26 RD
+28 58 WR
+28 59 WR
+28 27 EX
+28 60 ST
+58 27 RD
+59 27 RD
+27 61 WR
+55 27 RD
+56 28 RD
+26 28 EX
+26 62 WR
+26 63 WR
+26 64 EX
+65 26 RD
+66 26 RD
+28 67 WR
+28 68 WR
+28 27 EX
+67 27 RD
+68 27 RD
+27 69 WR
+27 70 WR
+63 27 RD
+64 28 RD
+31 26 RF
+39 26 RD
+47 28 RF
+60 26 RF
+26 28 EX
+26 27 EX
+26 71 WR
+26 72 EX
+73 26 RD
+73 28 RD
+28 74 WR
+74 27 RD
+27 75 WR
+27 76 WR
+27 77 ST
+71 27 RD
+72 27 RD
+26 28 EX
+26 78 WR
+26 79 WR
+26 80 EX
+81 26 RD
+81 27 RD
+82 26 RD
+28 83 WR
+28 27 EX
+83 27 RD
+27 84 WR
+27 85 WR
+27 86 ST
+78 27 RD
+79 27 RD
+26 28 EX
+26 27 EX
+26 73 WR
+26 87 WR
+26 88 EX
+26 89 ST
+90 26 RD
+91 26 RD
+28 92 WR
+28 93 WR
+92 27 RD
+93 27 RD
+27 94 WR
+73 28 RD
+88 27 RD
+95 96 EX
+95 97 EX
+95 98 WR
+95 99 WR
+100 95 RD
+96 101 WR
+96 102 WR
+101 97 RD
+102 97 RD
+97 103 WR
+98 97 RD
+99 96 RD
+77 27 RF
+86 26 RF
+89 95 RF
+26 27 EX
+26 104 WR
+26 105 WR
+26 106 EX
+26 107 ST
+108 26 RD
+109 26 RD
+27 110 WR
+27 111 WR
+27 28 EX
+110 28 RD
+111 28 RD
+28 112 WR
+28 113 WR
+104 28 RD
+105 27 RD
+26 27 EX
+26 114 WR
+26 115 WR
+26 116 EX
+26 117 ST
+118 26 RD
+27 119 WR
+27 120 WR
+27 28 EX
+120 28 RD
+28 121 WR
+114 28 RD
+115 28 RD
+116 26 RD
+26 27 EX
+26 122 WR
+26 123 WR
+26 124 EX
+26 125 WR
+126 26 RD
+127 26 RD
+27 128 WR
+27 28 EX
+128 28 RD
+28 129 WR
+28 130 WR
+122 27 RD
+123 28 RD
+124 28 RD
+26 27 EX
+26 28 EX
+26 131 WR
+26 132 EX
+26 133 WR
+134 26 RD
+27 135 WR
+27 136 WR
+135 28 RD
+136 28 RD
+28 65 WR
+131 27 RD
+132 26 RD
+26 27 EX
+26 137 WR
+26 138 WR
+26 139 EX
+140 26 RD
+27 141 WR
+27 142 WR
+27 28 EX
+141 28 RD
+28 143 WR
+28 144 WR
+137 28 RD
+138 28 RD
+139 27 RD
+107 26 RF
+117 26 RF
+125 26 RD
+133 28 RD
+26 28 EX
+26 27 EX
+26 145 WR
+26 146 EX
+147 26 RD
+147 28 RD
+28 148 WR
+28 149 WR
+148 27 RD
+149 27 RD
+27 150 WR
+27 151 WR
+27 152 ST
+145 27 RD
+26 28 EX
+26 153 WR
+26 154 EX
+155 26 RD
+155 28 RD
+156 26 RD
+28 157 WR
+28 158 WR
+28 27 EX
+157 27 RD
+158 27 RD
+27 159 WR
+27 160 WR
+27 161 WR
+153 27 RD
+26 49 EX
+26 27 EX
+26 162 WR
+26 163 WR
+26 164 EX
+26 165 ST
+166 26 RD
+166 49 RD
+166 27 RD
+167 26 RD
+49 168 WR
+49 28 EX
+168 27 RD
+28 169 WR
+28 170 WR
+169 27 RD
+170 27 RD
+27 171 WR
+26 28 EX
+26 172 WR
+26 173 EX
+174 26 RD
+174 27 RD
+28 175 WR
+28 176 WR
+28 27 EX
+28 177 ST
+175 27 RD
+176 27 RD
+27 178 WR
+172 28 RD
+26 27 EX
+26 178 WR
+26 179 EX
+180 26 RD
+180 27 RD
+27 181 WR
+27 182 WR
+27 28 EX
+181 28 RD
+182 28 RD
+28 183 WR
+28 184 WR
+179 27 RD
+152 27 RF
+161 26 RD
+165 28 RF
+177 27 RF
+26 28 EX
+26 185 WR
+26 186 EX
+26 187 ST
+188 26 RD
+189 26 RD
+28 190 WR
+28 27 EX
+190 27 RD
+27 191 WR
+185 28 RD
+186 27 RD
+186 28 RD
+26 28 EX
+26 192 WR
+26 193 WR
+26 194 EX
+26 195 ST
+196 26 RD
+196 28 RD
+197 26 RD
+28 87 WR
+28 27 EX
+87 27 RD
+27 198 WR
+192 27 RD
+194 27 RD
+26 199 EX
+26 28 EX
+26 200 WR
+26 201 WR
+26 202 EX
+26 203 WR
+204 26 RD
+204 49 RD
+205 26 RD
+199 206 WR
+199 49 EX
+206 28 RD
+49 207 WR
+49 208 WR
+207 28 RD
+208 52 RD
+28 209 WR
+28 210 WR
+28 52 EX
+209 52 RD
+210 52 RD
+52 211 WR
+52 212 WR
+26 27 EX
+26 213 WR
+26 214 EX
+215 26 RD
+216 26 RD
+216 27 RD
+216 28 RD
+27 217 WR
+27 28 EX
+217 28 RD
+28 218 WR
+214 28 RD
+187 26 RF
+195 26 RF
+203 26 RD

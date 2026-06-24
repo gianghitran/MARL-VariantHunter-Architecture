@@ -9,16 +9,16 @@
     "clusters": 4
   },
   "reward": {
-    "total": 0.7571374828446574,
+    "total": 0.7526278347753343,
     "coverage": 0.3333333333333333,
     "connectivity": 1.0,
     "validity": 1.0,
     "novelty": 0.5,
-    "chain_depth": 0.9444444444444445,
-    "transition_quality": 0.5435970506687959,
+    "chain_depth": 0.9523809523809524,
+    "transition_quality": 0.49056406203905745,
     "cluster_validity": 1.0,
-    "macro_reward": 0.4652589677340786,
-    "micro_reward": 0.9888888888888889
+    "macro_reward": 0.4466974217136701,
+    "micro_reward": 0.9904761904761905
   },
   "planner_meta": {
     "variant_type": "evolved",
@@ -27,38 +27,38 @@
       "transitions": [
         {
           "source": "T1588.002",
-          "target": "T1189",
-          "score": 0.175,
+          "target": "T1566.001",
+          "score": 0.16799999999999998,
           "gnn_score": null,
-          "scf_score": 0.175,
+          "scf_score": 0.16799999999999998,
           "kept": false,
           "bridge_hint": "socket"
         },
         {
-          "source": "T1189",
-          "target": "T1078.003",
-          "score": 0.6771193999052048,
+          "source": "T1566.001",
+          "target": "T1078.001",
+          "score": 0.6295960930585861,
           "gnn_score": null,
-          "scf_score": 0.6771193999052048,
+          "scf_score": 0.6295960930585861,
           "kept": false,
           "bridge_hint": "socket"
         },
         {
-          "source": "T1078.003",
-          "target": "T1053",
-          "score": 0.778671752101183,
-          "gnn_score": 0.7066076993942261,
-          "scf_score": 0.8667500387430191,
+          "source": "T1078.001",
+          "target": "T1098.003",
+          "score": 0.6740960930585862,
+          "gnn_score": null,
+          "scf_score": 0.6740960930585862,
           "kept": false,
           "bridge_hint": "socket"
         }
       ],
       "removed": [
         {
-          "technique_id": "T1078.001",
+          "technique_id": "T1059.009",
           "reason": "weak transition and stronger/equal bypass",
-          "incoming_score": 0.6265960930585861,
-          "bypass_score": 0.6771193999052048
+          "incoming_score": 0.45534643757343296,
+          "bypass_score": 0.6740960930585862
         }
       ]
     },
@@ -92,26 +92,25 @@
       },
       "next_transition": {
         "source": "T1588.002",
-        "target": "T1189",
-        "score": 0.175,
+        "target": "T1566.001",
+        "score": 0.16799999999999998,
         "gnn_score": null,
-        "scf_score": 0.175,
+        "scf_score": 0.16799999999999998,
         "kept": false,
         "bridge_hint": "socket"
       }
     },
     {
-      "technique_id": "T1189",
-      "technique_name": "Drive-by Compromise",
+      "technique_id": "T1566.001",
+      "technique_name": "Spearphishing Attachment",
       "tactic": "initial-access",
       "context": {
-        "technique_id": "T1189",
-        "name": "Drive-by Compromise",
+        "technique_id": "T1566.001",
+        "name": "Spearphishing Attachment",
         "tactics": [
           "initial-access"
         ],
         "platforms": [
-          "identity-provider",
           "linux",
           "macos",
           "windows"
@@ -120,31 +119,32 @@
         "impact": false,
         "data_sources": [],
         "capabilities": [
+          "credential",
           "execution",
           "file",
           "network"
         ],
         "requires_network": true,
         "requires_execution": true,
-        "produces_access": false
+        "produces_access": true
       },
       "next_transition": {
-        "source": "T1189",
-        "target": "T1078.003",
-        "score": 0.6771193999052048,
+        "source": "T1566.001",
+        "target": "T1078.001",
+        "score": 0.6295960930585861,
         "gnn_score": null,
-        "scf_score": 0.6771193999052048,
+        "scf_score": 0.6295960930585861,
         "kept": false,
         "bridge_hint": "socket"
       }
     },
     {
-      "technique_id": "T1078.003",
-      "technique_name": "Local Accounts",
+      "technique_id": "T1078.001",
+      "technique_name": "Default Accounts",
       "tactic": "stealth",
       "context": {
-        "technique_id": "T1078.003",
-        "name": "Local Accounts",
+        "technique_id": "T1078.001",
+        "name": "Default Accounts",
         "tactics": [
           "stealth",
           "persistence",
@@ -154,9 +154,13 @@
         "platforms": [
           "containers",
           "esxi",
+          "iaas",
+          "identity-provider",
           "linux",
           "macos",
           "network",
+          "office-suite",
+          "saas",
           "windows"
         ],
         "privilege_score": 0.0,
@@ -176,47 +180,44 @@
         "produces_access": true
       },
       "next_transition": {
-        "source": "T1078.003",
-        "target": "T1053",
-        "score": 0.778671752101183,
-        "gnn_score": 0.7066076993942261,
-        "scf_score": 0.8667500387430191,
+        "source": "T1078.001",
+        "target": "T1098.003",
+        "score": 0.6740960930585862,
+        "gnn_score": null,
+        "scf_score": 0.6740960930585862,
         "kept": false,
         "bridge_hint": "socket"
       }
     },
     {
-      "technique_id": "T1053",
-      "technique_name": "Scheduled Task/Job",
-      "tactic": "execution",
+      "technique_id": "T1098.003",
+      "technique_name": "Additional Cloud Roles",
+      "tactic": "persistence",
       "context": {
-        "technique_id": "T1053",
-        "name": "Scheduled Task/Job",
+        "technique_id": "T1098.003",
+        "name": "Additional Cloud Roles",
         "tactics": [
-          "execution",
           "persistence",
           "privilege-escalation"
         ],
         "platforms": [
-          "containers",
-          "esxi",
-          "linux",
-          "macos",
-          "network",
-          "windows"
+          "iaas",
+          "identity-provider",
+          "office-suite",
+          "saas"
         ],
         "privilege_score": 0.0,
         "impact": false,
         "data_sources": [],
         "capabilities": [
+          "credential",
           "execution",
           "file",
-          "network",
           "persistence",
           "privilege",
           "process"
         ],
-        "requires_network": true,
+        "requires_network": false,
         "requires_execution": true,
         "produces_access": true
       },
@@ -241,7 +242,7 @@
       ]
     },
     {
-      "technique_id": "T1189",
+      "technique_id": "T1566.001",
       "tactic": "initial-access",
       "valid": true,
       "issues": [],
@@ -257,7 +258,7 @@
       ]
     },
     {
-      "technique_id": "T1078.003",
+      "technique_id": "T1078.001",
       "tactic": "stealth",
       "valid": true,
       "issues": [],
@@ -273,11 +274,12 @@
       ]
     },
     {
-      "technique_id": "T1053",
-      "tactic": "execution",
+      "technique_id": "T1098.003",
+      "tactic": "persistence",
       "valid": true,
       "issues": [],
       "edge_types": [
+        "EX",
         "FR",
         "RF",
         "WF"

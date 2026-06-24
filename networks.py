@@ -15,11 +15,26 @@ import math
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch_geometric.nn import GATConv
+from torch_geometric.nn import GATConv, SAGEConv
 
 
 # ─────────────────────────────────────────────────────────────────────────────
-# Graph Attention Network (GATs) — thay thế GCN
+# Original Graph Convolutional Network (GCN) — SAGEConv
+# ─────────────────────────────────────────────────────────────────────────────
+
+class GCN(torch.nn.Module):
+    def __init__(self, in_channels: int, hidden_dim: int, out_channels: int):
+        super().__init__()
+        self.conv1 = SAGEConv(in_channels, hidden_dim)
+        self.conv2 = SAGEConv(hidden_dim, out_channels)
+
+    def forward(self, x: torch.Tensor, edge_index: torch.Tensor):
+        x = self.conv1(x, edge_index).relu()
+        x = self.conv2(x, edge_index)
+        return x
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Graph Attention Network (GATs)
 # ─────────────────────────────────────────────────────────────────────────────
 
 class GAT(torch.nn.Module):
@@ -185,19 +200,27 @@ class DetectionMLP(nn.Module):
         ewc_lambda: float = 400.0,
     ):
         super().__init__()
+        # Sequential khop chinh xac voi checkpoint mlp.pth:
+        #   net.0 = Linear(input_dim, hidden_dim)
+        #   net.1 = ReLU
+        #   net.2 = Linear(hidden_dim, 2)
+        # Dropout KHONG nam trong Sequential (tranh shift index -> key mismatch)
         self.net = nn.Sequential(
-            nn.Linear(input_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Dropout(0.2),
-            nn.Linear(hidden_dim, 2),
-            nn.Softmax(dim=-1),
+            nn.Linear(input_dim, hidden_dim),  # net.0
+            nn.ReLU(),                          # net.1
+            nn.Linear(hidden_dim, 2),           # net.2
         )
+        self.dropout = nn.Dropout(0.2)
         self.ewc_lambda = ewc_lambda
-        self.fisher_dict: dict = {}     # param_name → Fisher diagonal tensor
-        self.optimal_params: dict = {}  # param_name → W* tensor (anchor snapshot)
+        self.fisher_dict: dict = {}     # param_name -> Fisher diagonal tensor
+        self.optimal_params: dict = {}  # param_name -> W* tensor (anchor snapshot)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return self.net(x)
+        x = self.net[0](x)          # Linear
+        x = self.net[1](x)          # ReLU
+        x = self.dropout(x)         # Dropout (manual, khong trong Sequential)
+        x = self.net[2](x)          # Linear -> 2 logits
+        return F.softmax(x, dim=-1)
 
     def compute_fisher(
         self,

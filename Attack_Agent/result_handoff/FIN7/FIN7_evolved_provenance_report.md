@@ -2,8 +2,8 @@
 
 - DOT: `D:\notebook_UITNam3\Nam3_ki2\dacn\TAGAPT\TAGAPT_APTDetection\Attack_Agent\result_handoff\FIN7/FIN7_evolved_provenance.dot`
 - Quality valid: `True`
-- Nodes: `45`
-- Edges: `60`
+- Nodes: `47`
+- Edges: `62`
 - Clusters: `4`
 - Total reward: `0.7742`
 - Transition quality: `0.6585`

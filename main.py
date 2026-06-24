@@ -17,11 +17,12 @@ Reward closed-loop:
   - action 1: compression_ratio x (1 - loss_causal)
   - action 2: precision + recall - 2*FN + scf_impact
 
-Co-evolution Convergence (Nash Equilibrium Proxy):
-  - Convergence khi ca 2 agent dat dinh:
-      1. Det convergence: avg_det_score >= det_converge_thresh trong patience episodes
-      2. Attack convergence: evasion_rate on dinh (|evasion_rate - prev| < 0.05) trong patience episodes
-  - Training chay toi da num_episodes episodes neu convergence chua dat duoc
+Co-evolution Stopping (ImprovedStoppingCriterion):
+  Thu tu uu tien:
+    C. Failure/Degradation  -> dung som + canh bao
+    A. Nash Equilibrium     -> Global_F1 >= 0.75 AND std(evasion)<0.04 AND FN_rate<0.20 (12 ep)
+    B. Reward Plateau       -> std(reward)<0.10 AND no improvement (15 ep)
+    D. Hard cap             -> episode >= num_episodes (150)
 
 Continual Learning:
   - EWC + Prioritized Replay Buffer (Detection MLP)
@@ -29,6 +30,7 @@ Continual Learning:
 """
 
 import os
+import sys
 import datetime
 import torch
 import torch.optim as optim
@@ -44,117 +46,226 @@ torch.set_default_dtype(torch.float32)
 
 
 # =============================================================================
-# Adversarial Convergence Monitor
+# Improved Stopping Criterion  (thay the AdversarialConvergenceMonitor cu)
 # =============================================================================
 
-class AdversarialConvergenceMonitor:
+class ImprovedStoppingCriterion:
     """
-    Giam sat hoi tu cua he thong MARL Adversarial.
+    Co-evolution stopping criterion voi 4 tang uu tien:
 
-    Co-evolution convergence dat khi DONG THOI thoa:
-    1. DETECTION CONVERGENCE:
-       - avg_det_score (precision + recall - lambda*FN) on dinh >= det_thresh
-         trong 'patience' episodes lien tiep
-       Ngan nghia: Detection da hoc tot, FN -> 0
+    C. FAILURE / DEGRADATION (dung som, canh bao):
+       - FN_rate > failure_fn_rate trong patience_failure episodes lien tiep
+         -> Attack thong tri, Detection khong hoc duoc
+       - Global_F1 < 0.05 trong 20 episodes (sau episode 20)
+         -> Detection collapse hoan toan
 
-    2. ATTACK EQUILIBRIUM:
-       - evasion_rate (ty le FN tren tong cuoc tan cong) on dinh
-         (bien dong < evasion_delta trong 'patience' episodes)
-       Ngan nghia: Attack Agent khong the cai thien them duoc
+    A. NASH EQUILIBRIUM (dung thanh cong - tieu chi chinh):
+       - avg(Global_F1) >= f1_thresh     trong patience_nash episodes lien tiep
+       - std(evasion_rate) < evasion_delta  trong cung window
+       - avg(FN_rate) < fn_rate_thresh      trong cung window
+       Global_F1 do tu evaluate_detection_mlp() (sklearn) -- nam trong [0,1]
 
-    3. REWARD PLATEAU:
-       - Total reward dao dong it (std < reward_delta) trong 'patience' episodes
-       Ngan nghia: PPO Policy da on dinh
+    B. REWARD PLATEAU (dung trung tinh):
+       - std(total_reward) < reward_delta     trong patience_plateau episodes
+       - best_combined_score khong cai thien trong patience_plateau episodes
+
+    D. HARD CAP:
+       - episode >= num_episodes (xu ly o vong lap ngoai, khong qua day)
     """
 
     def __init__(
         self,
-        patience: int = 10,
-        det_thresh: float = 0.7,
-        evasion_delta: float = 0.05,
-        reward_delta: float = 0.1,
+        patience_nash:    int   = 12,
+        patience_plateau: int   = 15,
+        patience_failure: int   = 15,
+        f1_thresh:        float = 0.75,
+        evasion_delta:    float = 0.04,
+        fn_rate_thresh:   float = 0.20,
+        failure_fn_rate:  float = 0.80,
+        reward_delta:     float = 0.10,
     ):
-        self.patience      = patience
-        self.det_thresh    = det_thresh
-        self.evasion_delta = evasion_delta
-        self.reward_delta  = reward_delta
+        self.patience_nash    = patience_nash
+        self.patience_plateau = patience_plateau
+        self.patience_failure = patience_failure
+        self.f1_thresh        = f1_thresh
+        self.evasion_delta    = evasion_delta
+        self.fn_rate_thresh   = fn_rate_thresh
+        self.failure_fn_rate  = failure_fn_rate
+        self.reward_delta     = reward_delta
 
-        self.det_scores    = deque(maxlen=patience)
-        self.evasion_rates = deque(maxlen=patience)
-        self.total_rewards = deque(maxlen=patience)
+        # Buffers voi maxlen = window lon nhat
+        _win = max(patience_nash, patience_plateau, patience_failure)
+        self.f1_buf      = deque(maxlen=_win)
+        self.evasion_buf = deque(maxlen=_win)
+        self.fn_buf      = deque(maxlen=_win)
+        self.reward_buf  = deque(maxlen=_win)
 
-        self.best_det_score    = 0.0
+        # Bests
+        self.best_f1           = 0.0
         self.best_evasion_rate = 0.0
-        self.converged         = False
-        self.converge_reason   = ""
 
-    def update(self, det_score: float, evasion_rate: float, total_reward: float):
-        """Cap nhat sau moi episode va kiem tra convergence."""
-        self.det_scores.append(det_score)
-        self.evasion_rates.append(evasion_rate)
-        self.total_rewards.append(total_reward)
+        # Counters cho Failure detection
+        self._fn_high_count   = 0   # so ep lien tiep FN_rate cao
+        self._collapse_count  = 0   # so ep lien tiep F1 rat thap
 
-        if det_score > self.best_det_score:
-            self.best_det_score = det_score
+        # Counter cho Plateau detection
+        self._no_improve_count = 0
+        self._best_combined    = -float("inf")
+
+        self.episode = 0
+
+    def update(
+        self,
+        global_f1:    float,
+        evasion_rate: float,
+        fn_rate:      float,
+        total_reward: float,
+        combined_score: float,
+    ) -> tuple:
+        """
+        Cap nhat sau moi episode.
+
+        Args:
+            global_f1:      F1 tu evaluate_detection_mlp() [0, 1]
+            evasion_rate:   FN / det_calls [0, 1]
+            fn_rate:        FN / (FN + TP) thuc su [0, 1]
+            total_reward:   tong reward episode
+            combined_score: avg_det + evasion_rate (dung cho best checkpoint)
+
+        Returns:
+            (stop_reason, stop_msg)
+            stop_reason: "CONTINUE" | "CONVERGED" | "PLATEAU" | "FAILURE"
+        """
+        import statistics
+
+        self.episode += 1
+        safe_f1 = global_f1 if global_f1 is not None else 0.0
+
+        # -- Update bests --
+        if safe_f1 > self.best_f1:
+            self.best_f1 = safe_f1
         if evasion_rate > self.best_evasion_rate:
             self.best_evasion_rate = evasion_rate
 
-        if len(self.det_scores) < self.patience:
-            return False  # Chua du du lieu de danh gia
+        # -- Append buffers --
+        self.f1_buf.append(safe_f1)
+        self.evasion_buf.append(evasion_rate)
+        self.fn_buf.append(fn_rate)
+        self.reward_buf.append(total_reward)
 
-        # --- Dieu kien 1: Detection Convergence ---
-        avg_det = sum(self.det_scores) / len(self.det_scores)
-        det_converged = avg_det >= self.det_thresh
-
-        # --- Dieu kien 2: Attack Equilibrium ---
-        import statistics
-        if len(self.evasion_rates) >= 2:
-            evasion_std = statistics.stdev(self.evasion_rates)
-            attack_equilibrium = evasion_std < self.evasion_delta
+        # -- Plateau: track no-improvement --
+        if combined_score > self._best_combined:
+            self._best_combined    = combined_score
+            self._no_improve_count = 0
         else:
-            attack_equilibrium = False
+            self._no_improve_count += 1
 
-        # --- Dieu kien 3: Reward Plateau ---
-        if len(self.total_rewards) >= 2:
-            reward_std = statistics.stdev(self.total_rewards)
-            reward_plateau = reward_std < self.reward_delta
+        # ─────────────────────────────────────────────────────────
+        # C. FAILURE / DEGRADATION  (uu tien cao nhat)
+        # ─────────────────────────────────────────────────────────
+        # C-a: Attack thong tri lien tiep
+        if fn_rate > self.failure_fn_rate:
+            self._fn_high_count += 1
         else:
-            reward_plateau = False
+            self._fn_high_count = 0
 
-        if det_converged and attack_equilibrium:
-            self.converged = True
-            self.converge_reason = (
-                f"Nash Equilibrium: Det={avg_det:.3f}>={self.det_thresh} | "
-                f"EvasionStd={evasion_std:.3f}<{self.evasion_delta}"
+        if self._fn_high_count >= self.patience_failure:
+            return (
+                "FAILURE",
+                f"Attack dominated: FN_rate={fn_rate:.3f} > {self.failure_fn_rate} "
+                f"for {self._fn_high_count} eps",
             )
-            return True
 
-        if reward_plateau and det_converged:
-            self.converged = True
-            self.converge_reason = (
-                f"Reward Plateau: Det={avg_det:.3f} | RewardStd={reward_std:.3f}<{self.reward_delta}"
+        # C-b: Detection collapse
+        if self.episode > 20 and safe_f1 < 0.05:
+            self._collapse_count += 1
+        else:
+            self._collapse_count = 0
+
+        if self._collapse_count >= 20:
+            return (
+                "FAILURE",
+                f"Detection collapse: Global_F1={safe_f1:.4f} < 0.05 for 20 eps",
             )
-            return True
 
-        return False
+        # ─────────────────────────────────────────────────────────
+        # A. NASH EQUILIBRIUM
+        # ─────────────────────────────────────────────────────────
+        if len(self.f1_buf) >= self.patience_nash:
+            window_f1  = list(self.f1_buf)[-self.patience_nash:]
+            window_eva = list(self.evasion_buf)[-self.patience_nash:]
+            window_fn  = list(self.fn_buf)[-self.patience_nash:]
 
-    def status_str(self) -> str:
-        """Chuoi trang thai de in ra log moi episode."""
-        if len(self.det_scores) == 0:
-            return "Chua co du lieu"
-        avg_det  = sum(self.det_scores) / len(self.det_scores)
-        avg_eva  = sum(self.evasion_rates) / len(self.evasion_rates)
-        buf_len  = len(self.det_scores)
+            avg_f1  = statistics.mean(window_f1)
+            std_eva = statistics.stdev(window_eva) if len(window_eva) > 1 else float("inf")
+            avg_fn  = statistics.mean(window_fn)
+
+            if (
+                avg_f1  >= self.f1_thresh
+                and std_eva < self.evasion_delta
+                and avg_fn  < self.fn_rate_thresh
+            ):
+                return (
+                    "CONVERGED",
+                    f"Nash Equilibrium: avg_F1={avg_f1:.3f}>={self.f1_thresh} | "
+                    f"EvaStd={std_eva:.3f}<{self.evasion_delta} | "
+                    f"avg_FN={avg_fn:.3f}<{self.fn_rate_thresh} "
+                    f"(window={self.patience_nash} eps)",
+                )
+
+        # ─────────────────────────────────────────────────────────
+        # B. REWARD PLATEAU
+        # ─────────────────────────────────────────────────────────
+        if len(self.reward_buf) >= self.patience_plateau:
+            window_rew = list(self.reward_buf)[-self.patience_plateau:]
+            rew_std = statistics.stdev(window_rew) if len(window_rew) > 1 else float("inf")
+
+            if (
+                rew_std < self.reward_delta
+                and self._no_improve_count >= self.patience_plateau
+            ):
+                return (
+                    "PLATEAU",
+                    f"Reward plateau: std={rew_std:.4f}<{self.reward_delta} | "
+                    f"no improvement for {self._no_improve_count} eps",
+                )
+
+        return ("CONTINUE", "")
+
+    def status_str(self, ep: int) -> str:
+        """Chuoi trang thai ngan gon de in trong log."""
+        f1_now  = self.f1_buf[-1]  if self.f1_buf  else 0.0
+        eva_now = self.evasion_buf[-1] if self.evasion_buf else 0.0
+        fn_now  = self.fn_buf[-1]  if self.fn_buf  else 0.0
         return (
-            f"Det={avg_det:.3f} (best={self.best_det_score:.3f}) | "
-            f"EvasionRate={avg_eva:.3f} (best={self.best_evasion_rate:.3f}) | "
-            f"Window={buf_len}/{self.patience}"
+            f"Global_F1={f1_now:.3f} (best={self.best_f1:.3f}) | "
+            f"EvasionRate={eva_now:.3f} (best={self.best_evasion_rate:.3f}) | "
+            f"FN_rate={fn_now:.3f} | "
+            f"NoImprove={self._no_improve_count}/{self.patience_plateau}"
         )
 
 
 # =============================================================================
 # Main PPO Training Loop
 # =============================================================================
+
+class _TeeStream:
+    """Ghi dong thoi ra console va file log."""
+    def __init__(self, *streams):
+        self._streams = streams
+
+    def write(self, data):
+        for s in self._streams:
+            s.write(data)
+            s.flush()
+
+    def flush(self):
+        for s in self._streams:
+            s.flush()
+
+    def isatty(self):
+        return False
+
 
 def run_marl_ppo():
     print("=" * 60)
@@ -165,11 +276,18 @@ def run_marl_ppo():
     gat_path  = os.path.join(base_dir, "trained_weights", "unicorn", "unicorn0.pth")
     w2v_path  = os.path.join(base_dir, "trained_weights", "unicorn", "unicorn.model")
 
-    # Tao run_dir theo timestamp
+    # ── Tao run_dir rieng biet theo timestamp ─────────────────────
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     run_dir   = os.path.join(base_dir, "runs", timestamp)
     os.makedirs(run_dir, exist_ok=True)
     print(f"[Main] Run artifacts -> {run_dir}")
+
+    # ── Redirect stdout/stderr vao run.log (giu nguyen console output) ─
+    _log_file   = open(os.path.join(run_dir, "run.log"), "w", encoding="utf-8", buffering=1)
+    _orig_stdout = sys.stdout
+    _orig_stderr = sys.stderr
+    sys.stdout   = _TeeStream(_orig_stdout, _log_file)
+    sys.stderr   = _TeeStream(_orig_stderr, _log_file)
 
     # ── Khoi tao Environment va Coordinator ───────────────────────
     env         = ProvenanceGraphEnv(gcn_model_path=gat_path, w2v_model_path=w2v_path, run_dir=run_dir)
@@ -191,19 +309,23 @@ def run_marl_ppo():
     clip_epsilon     = 0.2
     entropy_coeff    = 0.01
     value_coeff      = 0.5
-    num_episodes     = 100    # Toi da 100 episodes (se dung truoc neu convergence)
+    num_episodes     = 150   # Hard cap (tang tu 100 -> 150 theo proposal)
     ppo_epochs       = 4      # Epochs moi episode
     max_steps        = 15     # Buoc moi episode
+    min_det_per_ep   = 2      # Bat buoc goi Detection it nhat 2 lan/episode
 
-    # ── Adversarial Convergence Monitor ─────────────────────────────────
-    # Det score threshold = 0.7 (precision+recall dat 70%),
-    # Evasion delta = 0.05 (evasion rate on dinh trong +-5%),
-    # Patience = 8 episodes (phai on dinh lien tiep moi xem la hoi tu)
-    conv_monitor = AdversarialConvergenceMonitor(
-        patience      = 8,
-        det_thresh    = 0.7,
-        evasion_delta = 0.05,
-        reward_delta  = 0.15,
+    ACTION_NAMES = {0: "Generate", 1: "Prune   ", 2: "Detect  "}
+
+    # ── Improved Stopping Criterion ─────────────────────────────────
+    stopping = ImprovedStoppingCriterion(
+        patience_nash    = 12,
+        patience_plateau = 15,
+        patience_failure = 15,
+        f1_thresh        = 0.75,
+        evasion_delta    = 0.04,
+        fn_rate_thresh   = 0.20,
+        failure_fn_rate  = 0.80,
+        reward_delta     = 0.10,
     )
 
     # ── Best checkpoint tracking ────────────────────────────────────
@@ -211,6 +333,9 @@ def run_marl_ppo():
 
     # ── Training loop ──────────────────────────────────────────────
     for episode in range(num_episodes):
+        import time as _time
+        ep_start = _time.time()
+
         state = env.reset()
         done  = False
         step  = 0
@@ -221,10 +346,15 @@ def run_marl_ppo():
         states       = []
         actions_buf  = []
         fn_count     = 0      # Dem so FN trong episode
+        tp_count     = 0      # Dem so TP trong episode (cho FN_rate)
         det_calls    = 0      # Dem so lan goi Detection
 
         episode_confidence_scores = []
         episode_det_scores        = []
+
+        print(f"\n{'-'*60}")
+        print(f"[Episode {episode+1:03d}/{num_episodes}] START")
+        print(f"{'-'*60}")
 
         # ── Trajectory Collection ──────────────────────────────────
         while not done and step < max_steps:
@@ -234,7 +364,24 @@ def run_marl_ppo():
 
             probs  = F.softmax(logits, dim=-1)
             m      = Categorical(probs)
-            action = m.sample()
+
+            # Nguyen tac buoc Detection:
+            # 1. Neu dang o step giua (step == max_steps//2) va chua co Det nao -> Force Detect
+            # 2. Neu sap het episode (steps_left < deficit) -> Force Detect
+            steps_left = max_steps - step
+            det_deficit = min_det_per_ep - det_calls
+            mid_step   = max_steps // 2
+
+            force_detect = (
+                (det_calls == 0 and step == mid_step) or            # Chua co Det nao den giua ep
+                (det_deficit > 0 and steps_left < det_deficit)       # Sap het, thieu Det
+            )
+
+            if force_detect:
+                action = torch.tensor(2)   # Force Detection
+            else:
+                action = m.sample()
+
 
             next_state, reward, done, info = env.step(action.item())
 
@@ -245,15 +392,27 @@ def run_marl_ppo():
             if action.item() == 2:
                 det_calls += 1
                 fn_count  += info.get("FN", 0)
+                tp_count  += info.get("TP", 0)
                 det_score  = info.get("precision", 0.0) + info.get("recall", 0.0) \
                              - 2.0 * info.get("FN", 0) + info.get("scf_impact", 0.0)
                 episode_det_scores.append(det_score)
 
-            log_probs.append(m.log_prob(action))
+            log_probs.append(m.log_prob(torch.tensor(action.item())))
             values.append(value)
             rewards.append(reward)
             states.append(state)
             actions_buf.append(action)
+
+            # ── Step-level log ─────────────────────────────────────
+            action_name = ACTION_NAMES.get(action.item(), "?")
+            print(
+                f"  [Ep {episode+1:03d} | Step {step:02d}/{max_steps}] "
+                f"Action={action_name} | "
+                f"Reward={reward:+.4f} | "
+                f"Conf={conf:.3f} | "
+                f"DetCalls={det_calls} | "
+                f"GraphEdges={len(env.current_graph_df)}"
+            )
 
             state = next_state
 
@@ -300,7 +459,9 @@ def run_marl_ppo():
             optimizer.step()
 
         # ── EWC Continual Learning -- Offline Batch Update ─────────
-        env.train_detection_agent_ewc(run_dir=run_dir, batch_size=8)
+        global_f1 = env.train_detection_agent_ewc(run_dir=run_dir, batch_size=8)
+        if global_f1 is None:
+            global_f1 = env.best_det_score
 
         # ── Episode Metrics ────────────────────────────────────────
         avg_conf   = sum(episode_confidence_scores) / len(episode_confidence_scores) \
@@ -309,14 +470,15 @@ def run_marl_ppo():
                      if episode_det_scores else 0.0
         # evasion_rate = ty le buoc Detection bi FN trong tong so lan Detection duoc goi
         evasion_rate = fn_count / det_calls if det_calls > 0 else 0.0
+        # fn_rate = ty le FN thuc su (FN / (FN + TP))
+        fn_rate  = fn_count / (fn_count + tp_count) if (fn_count + tp_count) > 0 else 0.0
         total_rew  = sum(rewards)
 
-        # ── Best Checkpoint ────────────────────────────────────────
-        # Combined = det_score + evasion_rate (ca 2 agent tot = he thong co-evolve manh)
+        # ── Best Checkpoint (luu vao run_dir) ─────────────────────
         combined_score = avg_det + evasion_rate
         if combined_score > best_combined_score:
             best_combined_score = combined_score
-            best_ckpt_path = os.path.join(base_dir, "ppo_coordinator_best.pth")
+            best_ckpt_path = os.path.join(run_dir, "ppo_coordinator_best.pth")
             torch.save(coordinator.state_dict(), best_ckpt_path)
             print(f"[Checkpoint] New best combined score={combined_score:.4f} -> {best_ckpt_path}")
 
@@ -329,19 +491,26 @@ def run_marl_ppo():
         # ── Closed-loop summary ────────────────────────────────────
         cl = getattr(env, "last_closed_loop_reward", {})
 
-        # ── Convergence Monitor update ─────────────────────────────
-        converged = conv_monitor.update(avg_det, evasion_rate, total_rew)
+        # ── Update Stopping Criteria ───────────────────────────────
+        stop_reason, stop_msg = stopping.update(global_f1, evasion_rate, fn_rate, total_rew, combined_score)
 
-        # ── Episode Log ────────────────────────────────────────────
+        ep_elapsed = _time.time() - ep_start
+
+        # ── Episode Summary Log ────────────────────────────────────
         print(f"\n{'='*60}")
-        print(f"Episode {episode+1}/{num_episodes}")
+        print(
+            f"[Episode {episode+1:03d}/{num_episodes}] DONE "
+            f"({ep_elapsed:.1f}s | {step} steps)"
+        )
         print(f"  Total Reward   : {total_rew:.4f}")
         print(f"  Avg Confidence : {avg_conf:.4f}")
-        print(f"  Actions        : {[a.item() for a in actions_buf]}")
-        print(f"  Det Calls/FN   : {det_calls} calls | FN={fn_count} | EvasionRate={evasion_rate:.2f}")
+        print(f"  Actions        : {[ACTION_NAMES.get(a.item(),a.item()) for a in actions_buf]}")
+        print(f"  Det Calls/FN   : {det_calls} calls | FN={fn_count} TP={tp_count} | "
+              f"EvasionRate={evasion_rate:.3f} | FN_rate={fn_rate:.3f}")
         print(f"  Avg Det Score  : {avg_det:.4f}  (precision+recall-2*FN+scf)")
+        print(f"  Global F1      : {global_f1:.4f}" if global_f1 is not None else "  Global F1      : N/A")
         print(f"  Graph Size     : {len(env.current_graph_df)} edges")
-        print(f"  Best Score     : {env.best_det_score:.4f}")
+        print(f"  Best MLP Score : {env.best_det_score:.4f}")
         print(f"  Replay Buffer  : {len(env.replay_buffer)} samples")
         print(f"  MAB Stats      : {mab_str}")
         if cl:
@@ -350,23 +519,42 @@ def run_marl_ppo():
                 f"evasion={cl.get('detector_evasion', 0):.4f} | "
                 f"fn_bonus={cl.get('hard_sample_bonus', 0):.4f}"
             )
-        print(f"  Convergence    : {conv_monitor.status_str()}")
+        print(f"  StopMonitor    : {stopping.status_str(episode+1)}")
+        print(f"  StopReason     : {stop_reason}" + (f" | {stop_msg}" if stop_msg else ""))
         print("=" * 60)
 
-        # ── Kiem tra convergence ───────────────────────────────────
-        if converged:
-            print(f"\n[Convergence] He thong dat Nash Equilibrium sau {episode+1} episodes!")
-            print(f"[Convergence] Ly do: {conv_monitor.converge_reason}")
-            print(f"[Convergence] Best Det Score = {conv_monitor.best_det_score:.4f}")
-            print(f"[Convergence] Best Evasion Rate = {conv_monitor.best_evasion_rate:.4f}")
+        # ── Kiem tra dieu kien dung ────────────────────────────────
+        if stop_reason == "CONVERGED":
+            print(f"\n[STOP-CONVERGED] He thong dat Nash Equilibrium sau {episode+1} episodes!")
+            print(f"[STOP-CONVERGED] {stop_msg}")
+            print(f"[STOP-CONVERGED] Best Global F1    = {stopping.best_f1:.4f}")
+            print(f"[STOP-CONVERGED] Best Evasion Rate = {stopping.best_evasion_rate:.4f}")
+            break
+        elif stop_reason == "PLATEAU":
+            print(f"\n[STOP-PLATEAU] Reward plateau sau {episode+1} episodes.")
+            print(f"[STOP-PLATEAU] {stop_msg}")
+            print(f"[STOP-PLATEAU] Best Global F1 = {stopping.best_f1:.4f}")
+            break
+        elif stop_reason == "FAILURE":
+            print(f"\n[STOP-FAILURE] He thong suy thoai sau {episode+1} episodes!")
+            print(f"[STOP-FAILURE] {stop_msg}")
+            print("[STOP-FAILURE] Nen kiem tra lai hyperparameters hoac du lieu.")
             break
 
-    # ── Save PPO Coordinator (final) ──────────────────────────────
-    save_path = os.path.join(base_dir, "ppo_coordinator.pth")
+
+    # ── Save PPO Coordinator final (vao run_dir) ──────────────────
+    save_path = os.path.join(run_dir, "ppo_coordinator_final.pth")
     torch.save(coordinator.state_dict(), save_path)
     print(f"\n[Main] Training complete. PPO Coordinator saved -> {save_path}")
-    print(f"[Main] Best checkpoint -> {os.path.join(base_dir, 'ppo_coordinator_best.pth')}")
+    print(f"[Main] Best checkpoint -> {os.path.join(run_dir, 'ppo_coordinator_best.pth')}")
     print(f"[Main] Best combined score = {best_combined_score:.4f}")
+    print(f"[Main] All artifacts (log, checkpoints, graphs, CSV) -> {run_dir}")
+
+    # ── Restore stdout/stderr va dong log file ─────────────────────
+    sys.stdout = _orig_stdout
+    sys.stderr = _orig_stderr
+    _log_file.close()
+    print(f"[Main] Log saved -> {os.path.join(run_dir, 'run.log')}")
 
 
 if __name__ == "__main__":

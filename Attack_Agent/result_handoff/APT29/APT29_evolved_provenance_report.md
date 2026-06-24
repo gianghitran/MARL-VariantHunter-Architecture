@@ -2,8 +2,8 @@
 
 - DOT: `D:\notebook_UITNam3\Nam3_ki2\dacn\TAGAPT\TAGAPT_APTDetection\Attack_Agent\result_handoff\APT29/APT29_evolved_provenance.dot`
 - Quality valid: `True`
-- Nodes: `41`
-- Edges: `56`
+- Nodes: `45`
+- Edges: `60`
 - Clusters: `4`
 - Total reward: `0.7679`
 - Transition quality: `0.6961`
@@ -16,4 +16,4 @@
 4. `T1053` Scheduled Task/Job (execution)
 
 ## Pruned Techniques
-- `T1608.001`: weak transition and stronger/equal bypass (incoming=0.2333, bypass=0.4649)
+- `T1588.002`: weak transition and stronger/equal bypass (incoming=0.2217, bypass=0.4649)

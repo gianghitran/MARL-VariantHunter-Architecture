@@ -4,8 +4,8 @@
   "dot_path": "D:\\notebook_UITNam3\\Nam3_ki2\\dacn\\TAGAPT\\TAGAPT_APTDetection\\Attack_Agent\\result_handoff\\APT38/APT38_composite_provenance.dot",
   "quality_valid": true,
   "stats": {
-    "nodes": 61,
-    "edges": 82,
+    "nodes": 57,
+    "edges": 77,
     "clusters": 5
   },
   "reward": {

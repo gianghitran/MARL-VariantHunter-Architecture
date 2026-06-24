@@ -1,164 +1,156 @@
 import sys
+import random
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.utils.data import TensorDataset, DataLoader
 import numpy as np
 import pandas as pd
-from tqdm import tqdm
 from gensim.models import Word2Vec
+from torch_geometric.data import Data
+from torch_geometric.loader import DataLoader
 
 # Import necessary classes and functions from the main module
-from marl_provenance_ppo import GCN, DetectionMLP, prepare_graph, infer, PositionalEncoder
+from networks import GAT, DetectionMLP, PositionalEncoder
+from graph_utils import prepare_graph, infer
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 torch.set_default_dtype(torch.float32)
 
-# ==========================================
-# Cấu hình đường dẫn gốc (Base Directory)
-# ==========================================
-BASE_DIR = r"D:\\notebook_UITNam3\\Nam3_ki2\\dacn\\reinforcement-learning-in-llm"
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
-def extract_features():
-    gcn_model_path = os.path.join(BASE_DIR, "trained_weights", "unicorn", "unicorn0.pth")
+def train_mlp():
     w2v_model_path = os.path.join(BASE_DIR, "trained_weights", "unicorn", "unicorn.model")
-    
-    # Load pre-trained models
-    gcn = GCN(30, 14).to(device)
-    if os.path.exists(gcn_model_path):
-        gcn.load_state_dict(torch.load(gcn_model_path, map_location=device))
-    else:
-        print(f"Error: GCN model not found at {gcn_model_path}")
-        return [], []
-    gcn.eval()
-    
     encoder = PositionalEncoder(30)
     try:
         w2vmodel = Word2Vec.load(w2v_model_path)
     except:
         print(f"Error: Word2Vec model not found at {w2v_model_path}")
-        return [], []
+        return
     
-    latent_vectors = []
-    labels = []
+    gat = GAT(in_channels=30, out_channels=20, hidden_dim=64, heads=8, dropout=0.3).to(device)
     
-    print("Extracting Latent Features from 150 graph files...")
-    # Use tqdm to display progress bar
-    for i in tqdm(range(150), desc="Processing Graphs"):
-        file_path = os.path.join(BASE_DIR, "unicorn", f"{i}.txt")
-        if not os.path.exists(file_path):   
-            continue
-            
+    print("\nPreparing dataset from 'unicorn' folder...")
+    dataset_graphs = []
+    
+    for i in range(150):
+        fpath = os.path.join(BASE_DIR, "unicorn", f"{i}.txt")
+        if not os.path.exists(fpath): continue
         try:
-            # Read dataset file
-            df = pd.read_csv(file_path, sep='\t', names=['actorID', 'actor_type', 'objectID', 'object', 'action', 'timestamp'])
+            df = pd.read_csv(fpath, sep='\t', names=['actorID', 'actor_type', 'objectID', 'object', 'action', 'timestamp'])
             
-            # Label assignment: 0 to 124 are Benign (0), 125 to 149 are Attack (1)
+            # 0 -> 124: Benign (label 0)
+            # 125 -> 149: Attack (label 1)
             label = 0 if i < 125 else 1
             
-            # Convert to Node and Edge lists
-            phrases, node_labels, edges, _ = prepare_graph(df)
-            if len(phrases) == 0:
-                continue
-                
-            # Word2Vec Embedding
+            phrases, _, edges, _ = prepare_graph(df)
+            if len(phrases) == 0: continue
+            
             nodes = [infer(x, w2vmodel, encoder) for x in phrases]
-            x_tensor = torch.tensor(np.array(nodes), dtype=torch.float32).to(device)
-            edge_index_tensor = torch.tensor(edges, dtype=torch.long).to(device)
+            x_tensor = torch.tensor(np.array(nodes), dtype=torch.float32)
+            edge_index_tensor = torch.tensor(edges, dtype=torch.long)
             
-            # Pass through GCN (frozen weights) to extract features
-            with torch.no_grad():
-                latent_features = gcn.conv1(x_tensor, edge_index_tensor).relu()
-                latent_features = gcn.conv2(latent_features, edge_index_tensor)
-                # Mean Pooling to aggregate into a single Vector (1, 20) representing the graph
-                graph_latent = latent_features.mean(dim=0)
-                
-            latent_vectors.append(graph_latent.cpu().numpy())
-            labels.append(label)
+            # Create PyG Data object
+            data = Data(x=x_tensor, edge_index=edge_index_tensor, y=torch.tensor([label], dtype=torch.float32))
+            dataset_graphs.append(data)
         except Exception as e:
-            print(f"\nError processing {file_path}: {e}")
-            
-    return np.array(latent_vectors), np.array(labels)
+            continue
+        
+    num_attack = sum(1 for data in dataset_graphs if data.y.item() == 1)
+    num_benign = sum(1 for data in dataset_graphs if data.y.item() == 0)
+    print(f"Extracted {len(dataset_graphs)} samples. Attack (1): {num_attack}, Benign (0): {num_benign}")
+    
+    # Oversampling
+    if num_attack > 0 and num_benign > num_attack:
+        num_to_duplicate = num_benign - num_attack
+        print(f"Applying Oversampling: Adding {num_to_duplicate} Attack samples.")
+        attack_graphs = [g for g in dataset_graphs if g.y.item() == 1]
+        oversampled = random.choices(attack_graphs, k=num_to_duplicate)
+        dataset_graphs.extend(oversampled)
+        
+    gat_model_path = os.path.join(BASE_DIR, "trained_weights", "unicorn", "unicorn0_gat.pth")
+    if os.path.exists(gat_model_path):
+        gat.load_state_dict(torch.load(gat_model_path, map_location=device))
+        print(f"Loaded pre-trained GAT from {gat_model_path}")
+    else:
+        print(f"Warning: Pre-trained GAT not found at {gat_model_path}. You should run pretrain_gat.py first.")
 
-def train_mlp():
-    X, y = extract_features()
+    # Train GAT and MLP end-to-end
+    for param in gat.parameters():
+        param.requires_grad = True
+    gat.train()
+
+    # MLP to evaluate
+    mlp = DetectionMLP(input_dim=20, hidden_dim=32).to(device)
     
-    if len(X) == 0:
-        print("No valid data. Exiting.")
-        return
-        
-    print(f"\nExtracted {len(X)} samples. Attack (1): {np.sum(y)}, Benign (0): {len(y) - np.sum(y)}")
-    
-    # ---------------------------------------------------------
-    # Oversampling: Handling data imbalance
-    # ---------------------------------------------------------
-    attack_indices = np.where(y == 1)[0]
-    benign_indices = np.where(y == 0)[0]
-    
-    # Calculate the required number of duplicates
-    num_to_duplicate = len(benign_indices) - len(attack_indices)
-    if num_to_duplicate > 0 and len(attack_indices) > 0:
-        print(f"Applying Oversampling: Adding {num_to_duplicate} Attack samples via sampling with replacement.")
-        oversampled_indices = np.random.choice(attack_indices, num_to_duplicate, replace=True)
-        X = np.concatenate([X, X[oversampled_indices]], axis=0)
-        y = np.concatenate([y, y[oversampled_indices]], axis=0)
-        
-    print(f"After Oversampling -> Attack (1): {np.sum(y)}, Benign (0): {len(y) - np.sum(y)}")
-    
-    # Convert to PyTorch Tensors
-    X_tensor = torch.tensor(X, dtype=torch.float32).to(device)
-    y_tensor = torch.tensor(y, dtype=torch.float32).to(device) 
-    
-    dataset = TensorDataset(X_tensor, y_tensor)
-    dataloader = DataLoader(dataset, batch_size=16, shuffle=True)
-    
-    # Initialize the model
-    mlp = DetectionMLP(20, 32).to(device)
-    
-    # Using BCELoss. MLP output is Softmax(dim=-1) so we take the Attack column: out[:, 1]
     criterion = nn.BCELoss()
-    optimizer = optim.Adam(mlp.parameters(), lr=0.005)
     
-    epochs = 50
-    print(f"\nStarting Training for {epochs} epochs...")
-    mlp.train()
+    # Optimizer for BOTH GAT and MLP
+    optimizer = optim.Adam(list(gat.parameters()) + list(mlp.parameters()), lr=0.001, weight_decay=1e-4)
+    scheduler = optim.lr_scheduler.StepLR(optimizer, step_size=50, gamma=0.5)
+    
+    # Create DataLoader for batching (reduced batch size to prevent CUDA OOM)
+    loader = DataLoader(dataset_graphs, batch_size=4, shuffle=True)
+    
+    epochs = 30
+    print(f"\nStarting End-to-End Supervised Training (GAT + MLP) for {epochs} epochs...")
     for epoch in range(epochs):
+        gat.train()
+        mlp.train()
+        
         epoch_loss = 0.0
         correct = 0
         total = 0
         
-        for batch_x, batch_y in dataloader:
+        for batch in loader:
+            batch = batch.to(device)
             optimizer.zero_grad()
             
-            # Forward pass
-            out = mlp(batch_x)
-            attack_prob = out[:, 1] # Column 1 is the probability of the Attack class
+            # GAT pass (end-to-end)
+            latent_features = gat(batch.x, batch.edge_index)
             
-            loss = criterion(attack_prob, batch_y)
+            # Global mean pool across the batch
+            from torch_geometric.nn import global_mean_pool
+            graph_latent = global_mean_pool(latent_features, batch.batch)
+            
+            # MLP pass
+            out = mlp(graph_latent)
+            attack_prob = out[:, 1]
+            
+            # Fix dimension mismatch: batch.y is [batch_size, 1], attack_prob is [batch_size]
+            y_target = batch.y.squeeze(-1) if batch.y.dim() > 1 else batch.y
+            
+            loss = criterion(attack_prob, y_target)
             loss.backward()
             optimizer.step()
             
-            epoch_loss += loss.item() * batch_x.size(0)
+            epoch_loss += loss.item() * batch.num_graphs
             
-            # Calculate accuracy (Threshold = 0.5)
             preds = (attack_prob > 0.5).float()
-            correct += (preds == batch_y).sum().item()
-            total += batch_x.size(0)
+            correct += (preds == y_target).sum().item()
+            total += batch.num_graphs
             
+        scheduler.step()
+        
         epoch_loss /= total
         epoch_acc = correct / total
         
-        if (epoch + 1) % 5 == 0 or epoch == 0:
-            print(f"Epoch {epoch+1:02d}/{epochs} - Loss: {epoch_loss:.4f} - Accuracy: {epoch_acc:.4f}")
+        print(f"Epoch {epoch+1:03d}/{epochs} - Loss: {epoch_loss:.4f} - Accuracy: {epoch_acc:.4f} - LR: {scheduler.get_last_lr()[0]:.6f}")
+        
+        if epoch_acc >= 0.98 and epoch >= 5:
+            print(f"Early stopping triggered at epoch {epoch+1}! Accuracy reached {epoch_acc:.4f} >= 0.98")
+            break
             
-    # Save weights to file
-    save_path = os.path.join(BASE_DIR, "trained_weights", "unicorn", "mlp.pth")
-    os.makedirs(os.path.dirname(save_path), exist_ok=True)
-    torch.save(mlp.state_dict(), save_path)
-    print(f"\nTraining complete! Pre-trained weights saved to '{save_path}'")
+    # Save weights
+    mlp_save_path = os.path.join(BASE_DIR, "trained_weights", "unicorn", "mlp.pth")
+    gat_save_path = os.path.join(BASE_DIR, "trained_weights", "unicorn", "unicorn0_gat.pth")
+    os.makedirs(os.path.dirname(mlp_save_path), exist_ok=True)
+    
+    torch.save(mlp.state_dict(), mlp_save_path)
+    torch.save(gat.state_dict(), gat_save_path)
+    print(f"\nTraining complete! Saved MLP to '{mlp_save_path}' and updated GAT to '{gat_save_path}'")
 
 if __name__ == "__main__":
     train_mlp()

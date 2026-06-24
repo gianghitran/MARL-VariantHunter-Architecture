@@ -1,7 +1,7 @@
-Nodes: 39
-Edges: 53
-Unique labels: 35
+Nodes: 44
+Edges: 58
+Unique labels: 40
 Tactics: ['execution', 'persistence', 'reconnaissance', 'stealth']
-Edge types: {'FR': 8, 'WF': 16, 'ST': 4, 'RF': 19, 'RCV': 4, 'EX': 2}
+Edge types: {'FR': 9, 'WF': 18, 'ST': 4, 'RF': 21, 'RCV': 4, 'EX': 2}
 Semantic violations: 0
 Issues: []

@@ -4,21 +4,21 @@
   "dot_path": "D:\\notebook_UITNam3\\Nam3_ki2\\dacn\\TAGAPT\\TAGAPT_APTDetection\\Attack_Agent\\result_handoff\\Carbanak/Carbanak_aligned_provenance.dot",
   "quality_valid": true,
   "stats": {
-    "nodes": 54,
-    "edges": 73,
+    "nodes": 55,
+    "edges": 74,
     "clusters": 5
   },
   "reward": {
-    "total": 0.796360083236297,
+    "total": 0.802610083236297,
     "coverage": 0.5,
     "connectivity": 1.0,
     "validity": 1.0,
     "novelty": 0.5,
-    "chain_depth": 0.9375,
+    "chain_depth": 1.0,
     "transition_quality": 0.5261008323629697,
     "cluster_validity": 1.0,
     "macro_reward": 0.5341352913270394,
-    "micro_reward": 0.9875
+    "micro_reward": 1.0
   },
   "planner_meta": {
     "variant_type": "aligned",

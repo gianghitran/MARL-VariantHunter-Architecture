@@ -4,21 +4,21 @@
   "dot_path": "D:\\notebook_UITNam3\\Nam3_ki2\\dacn\\TAGAPT\\TAGAPT_APTDetection\\Attack_Agent\\result_handoff\\APT38/APT38_evolved_provenance.dot",
   "quality_valid": true,
   "stats": {
-    "nodes": 41,
-    "edges": 56,
-    "clusters": 4
+    "nodes": 56,
+    "edges": 76,
+    "clusters": 5
   },
   "reward": {
-    "total": 0.7218947307340684,
-    "coverage": 0.16666666666666666,
+    "total": 0.7987765140498678,
+    "coverage": 0.5,
     "connectivity": 1.0,
     "validity": 1.0,
     "novelty": 0.5,
-    "chain_depth": 0.9047619047619048,
-    "transition_quality": 0.6475187359121111,
+    "chain_depth": 1.0,
+    "transition_quality": 0.4877651404986778,
     "cluster_validity": 1.0,
-    "macro_reward": 0.4266315575692389,
-    "micro_reward": 0.980952380952381
+    "macro_reward": 0.5207177991745372,
+    "micro_reward": 1.0
   },
   "planner_meta": {
     "variant_type": "evolved",
@@ -27,40 +27,42 @@
       "transitions": [
         {
           "source": "T1588.002",
-          "target": "T1574.012",
+          "target": "T1195.002",
           "score": 0.175,
           "gnn_score": null,
           "scf_score": 0.175,
           "kept": false,
-          "bridge_hint": "file"
-        },
-        {
-          "source": "T1574.012",
-          "target": "T1047",
-          "score": 0.9475000774860383,
-          "gnn_score": null,
-          "scf_score": 0.9475000774860383,
-          "kept": true,
           "bridge_hint": "socket"
         },
         {
-          "source": "T1047",
+          "source": "T1195.002",
+          "target": "T1059.003",
+          "score": 0.4456430332859357,
+          "gnn_score": null,
+          "scf_score": 0.4456430332859357,
+          "kept": false,
+          "bridge_hint": "file"
+        },
+        {
+          "source": "T1059.003",
           "target": "T1197",
           "score": 0.8200561302502949,
           "gnn_score": null,
           "scf_score": 0.8200561302502949,
           "kept": true,
           "bridge_hint": "socket"
+        },
+        {
+          "source": "T1197",
+          "target": "T1615",
+          "score": 0.5103613984584808,
+          "gnn_score": null,
+          "scf_score": 0.5103613984584808,
+          "kept": false,
+          "bridge_hint": "socket"
         }
       ],
-      "removed": [
-        {
-          "technique_id": "T1195.002",
-          "reason": "weak transition and stronger/equal bypass",
-          "incoming_score": 0.175,
-          "bypass_score": 0.175
-        }
-      ]
+      "removed": []
     },
     "threshold": 0.8
   },
@@ -92,26 +94,27 @@
       },
       "next_transition": {
         "source": "T1588.002",
-        "target": "T1574.012",
+        "target": "T1195.002",
         "score": 0.175,
         "gnn_score": null,
         "scf_score": 0.175,
         "kept": false,
-        "bridge_hint": "file"
+        "bridge_hint": "socket"
       }
     },
     {
-      "technique_id": "T1574.012",
-      "technique_name": "COR_PROFILER",
-      "tactic": "stealth",
+      "technique_id": "T1195.002",
+      "technique_name": "Compromise Software Supply Chain",
+      "tactic": "initial-access",
       "context": {
-        "technique_id": "T1574.012",
-        "name": "COR_PROFILER",
+        "technique_id": "T1195.002",
+        "name": "Compromise Software Supply Chain",
         "tactics": [
-          "stealth",
-          "execution"
+          "initial-access"
         ],
         "platforms": [
+          "linux",
+          "macos",
           "windows"
         ],
         "privilege_score": 0.0,
@@ -120,29 +123,29 @@
         "capabilities": [
           "execution",
           "file",
-          "process"
+          "network"
         ],
-        "requires_network": false,
+        "requires_network": true,
         "requires_execution": true,
         "produces_access": false
       },
       "next_transition": {
-        "source": "T1574.012",
-        "target": "T1047",
-        "score": 0.9475000774860383,
+        "source": "T1195.002",
+        "target": "T1059.003",
+        "score": 0.4456430332859357,
         "gnn_score": null,
-        "scf_score": 0.9475000774860383,
-        "kept": true,
-        "bridge_hint": "socket"
+        "scf_score": 0.4456430332859357,
+        "kept": false,
+        "bridge_hint": "file"
       }
     },
     {
-      "technique_id": "T1047",
-      "technique_name": "Windows Management Instrumentation",
+      "technique_id": "T1059.003",
+      "technique_name": "Windows Command Shell",
       "tactic": "execution",
       "context": {
-        "technique_id": "T1047",
-        "name": "Windows Management Instrumentation",
+        "technique_id": "T1059.003",
+        "name": "Windows Command Shell",
         "tactics": [
           "execution"
         ],
@@ -163,7 +166,7 @@
         "produces_access": false
       },
       "next_transition": {
-        "source": "T1047",
+        "source": "T1059.003",
         "target": "T1197",
         "score": 0.8200561302502949,
         "gnn_score": null,
@@ -201,6 +204,42 @@
         "requires_execution": true,
         "produces_access": true
       },
+      "next_transition": {
+        "source": "T1197",
+        "target": "T1615",
+        "score": 0.5103613984584808,
+        "gnn_score": null,
+        "scf_score": 0.5103613984584808,
+        "kept": false,
+        "bridge_hint": "socket"
+      }
+    },
+    {
+      "technique_id": "T1615",
+      "technique_name": "Group Policy Discovery",
+      "tactic": "discovery",
+      "context": {
+        "technique_id": "T1615",
+        "name": "Group Policy Discovery",
+        "tactics": [
+          "discovery"
+        ],
+        "platforms": [
+          "windows"
+        ],
+        "privilege_score": 0.0,
+        "impact": false,
+        "data_sources": [],
+        "capabilities": [
+          "discovery",
+          "execution",
+          "file",
+          "network"
+        ],
+        "requires_network": true,
+        "requires_execution": true,
+        "produces_access": false
+      },
       "next_transition": null
     }
   ],
@@ -222,8 +261,8 @@
       ]
     },
     {
-      "technique_id": "T1574.012",
-      "tactic": "stealth",
+      "technique_id": "T1195.002",
+      "tactic": "initial-access",
       "valid": true,
       "issues": [],
       "edge_types": [
@@ -238,7 +277,7 @@
       ]
     },
     {
-      "technique_id": "T1047",
+      "technique_id": "T1059.003",
       "tactic": "execution",
       "valid": true,
       "issues": [],
@@ -256,6 +295,22 @@
     {
       "technique_id": "T1197",
       "tactic": "stealth",
+      "valid": true,
+      "issues": [],
+      "edge_types": [
+        "EX",
+        "FR",
+        "RF",
+        "WF"
+      ],
+      "node_types": [
+        "file",
+        "process"
+      ]
+    },
+    {
+      "technique_id": "T1615",
+      "tactic": "discovery",
       "valid": true,
       "issues": [],
       "edge_types": [

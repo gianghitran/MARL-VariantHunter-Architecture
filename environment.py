@@ -149,7 +149,12 @@ class PrioritizedReplayBuffer:
         if not self.buffer:
             return []
         priorities = np.array([-e[0] for e in self.buffer], dtype=np.float64)
-        priorities = priorities / (priorities.sum() + 1e-9)
+        total = priorities.sum()
+        if total > 0:
+            priorities = priorities / total
+        else:
+            priorities = np.ones_like(priorities) / len(priorities)
+            
         n = min(batch_size, len(self.buffer))
         indices = np.random.choice(len(self.buffer), size=n, replace=False, p=priorities)
         return [self.buffer[i][2] for i in indices]
@@ -180,44 +185,36 @@ class ProvenanceGraphEnv:
 
         # ── Load pre-trained GAT (Detection Agent backbone) ──────────
         self.gat = GAT(in_channels=30, out_channels=20, hidden_dim=64, heads=8, dropout=0.3).to(device)
-        # Load pre-trained GAT weights (partial, strict=False)
-        if os.path.exists(gcn_model_path):
+        gat_model_path = os.path.join(base_dir, "trained_weights", "unicorn", "unicorn0_gat.pth")
+        if os.path.exists(gat_model_path):
             try:
-                state = torch.load(gcn_model_path, map_location=device)
-                self.gat.load_state_dict(state, strict=False)
-                print(f"[Env] Loaded partial GAT weights from {gcn_model_path} (strict=False).")
+                state = torch.load(gat_model_path, map_location=device)
+                self.gat.load_state_dict(state)
+                print(f"[Env] Loaded GAT weights from {gat_model_path}.")
             except Exception as e:
                 print(f"[Env] Could not load GAT weights: {e}")
+        else:
+            print(f"[Env] WARNING: {gat_model_path} not found. Using random GAT weights.")
         self.gat.eval()
 
         # ── Load pre-trained Detection MLP ───────────────────────────
         self.detection_mlp = DetectionMLP(input_dim=20, hidden_dim=32).to(device)
 
         # Thu tu uu tien load:
-        # 1. best_mlp.pth (global best tu tat ca cac lan chay truoc)
-        # 2. trained_weights/unicorn/mlp.pth (pre-trained goc)
-        # 3. Random init
-        global_best_mlp  = os.path.join(base_dir, "best_mlp.pth")
+        # 1. trained_weights/unicorn/mlp.pth (pre-trained goc, khong phu thuoc run khac)
+        # 2. Random init
+        # NOTE: global best_mlp.pth da KHONG con duoc doc de tranh lan lan giua cac lan chay.
+        #       Best model cua tung run duoc luu trong runs/<timestamp>/best_mlp.pth.
         original_mlp_path = os.path.join(base_dir, "trained_weights", "unicorn", "mlp.pth")
 
-        if os.path.exists(global_best_mlp):
+        if os.path.exists(original_mlp_path):
             try:
                 self.detection_mlp.load_state_dict(
-                    torch.load(global_best_mlp, map_location=device), strict=False
+                    torch.load(original_mlp_path, map_location=device), strict=False
                 )
-                print(f"[Env] Loaded global best DetectionMLP from {global_best_mlp}")
+                print(f"[Env] Loaded original DetectionMLP weights from {original_mlp_path}")
             except Exception as e:
-                print(f"[Env] Could not load best_mlp.pth ({e}). Trying original weights.")
-                if os.path.exists(original_mlp_path):
-                    self.detection_mlp.load_state_dict(
-                        torch.load(original_mlp_path, map_location=device), strict=False
-                    )
-                    print(f"[Env] Loaded original MLP weights from {original_mlp_path}")
-        elif os.path.exists(original_mlp_path):
-            self.detection_mlp.load_state_dict(
-                torch.load(original_mlp_path, map_location=device), strict=False
-            )
-            print(f"[Env] Loaded original MLP weights from {original_mlp_path}")
+                print(f"[Env] Could not load mlp.pth ({e}). Starting from random init.")
         else:
             print("[Env] No pre-trained DetectionMLP found. Starting from random init.")
 
@@ -230,7 +227,7 @@ class ProvenanceGraphEnv:
         self.det_optimizer        = torch.optim.Adam(self.detection_mlp.parameters(), lr=1e-4)
         self._ewc_initialized     = False
 
-        self.encoder = PositionalEncoder(30)
+        self.encoder = PositionalEncoder(30)   # khop voi EMBED_DIM=30 trong graph_utils
         try:
             self.w2vmodel = Word2Vec.load(w2v_model_path)
         except Exception:
@@ -568,82 +565,100 @@ class ProvenanceGraphEnv:
             else:
                 grad_norms = None
 
-            # 5. IsolationForest trên node embeddings
+            # 5. IsolationForest: chi dung de tinh anomaly_ratio lam feature phu cho reward
+            # KHONG dung IsolationForest de quyet dinh phan loai vi:
+            # - IsolationForest(contamination=0.3).fit(X).predict(X) luon label dung 30% la outlier
+            # - anomaly_ratio luon >= 0.3 -> iforest_boost luon = 1 -> predicted=1 luon -> 100% TP (gia)
             latent_features = node_embeddings.detach()
-            predicted_attack = 0
-            anomaly_ratio    = 0.0
+            anomaly_ratio   = 0.0
 
-            if confidence_score > 0.5:
-                latent_np = latent_features.cpu().numpy()
-                clf = IsolationForest(random_state=0)
-                if len(latent_np) > 1:
-                    clf.fit(latent_np)
-                    iforest_preds = clf.predict(latent_np)
-                    anomaly_ratio = float((iforest_preds == -1).mean())
-                if anomaly_ratio > 0.3:
-                    predicted_attack = 1
+            if len(latent_features) > 1:
+                latent_np     = latent_features.cpu().numpy()
+                clf           = IsolationForest(random_state=0, contamination="auto")
+                clf.fit(latent_np)
+                # Dung decision_function (score) thay vi binary predict:
+                # score < 0: outlier (cang am cang anomalous)
+                # score > 0: inlier
+                scores        = clf.decision_function(latent_np)
+                # anomaly_ratio: ty le node co score < nguong -0.05 (coi la anomalous ro rang)
+                anomaly_ratio = float((scores < -0.05).mean())
 
-            # 6. Ground Truth & Prediction
+            # 6. Quyet dinh phan loai: CHI dua vao MLP confidence (thuc su tu model)
+            # IsolationForest anomaly_ratio chi dung de augment reward, khong quyet dinh label
+            predicted_attack = 1 if confidence_score >= 0.5 else 0
+
+            # 7. Ground Truth
             # Tat ca do thi trong moi truong nay deu den tu Attack Agent -> luon la APT (GT=1)
-            # Ngoai ra: neu do thi lon (>50 canh) thi chac chan la APT phuc tap
-            is_attack_gt = 1  # Attack Agent luon sinh do thi tan cong
+            is_attack_gt = 1
 
             pred_label = "Malicious" if predicted_attack else "Benign"
-            gt_label   = "Malicious"  # Luon la Malicious
+            gt_label   = "Malicious"
 
             print(
-                f"[Detection GAT] Confidence={confidence_score:.4f} | "
-                f"Anomaly={anomaly_ratio:.2%} | Pred={pred_label} | GT={gt_label}"
+                f"[Detection GAT] Conf={confidence_score:.4f} | "
+                f"Pred={pred_label} (MLP-driven) | "
+                f"Anomaly(aux)={anomaly_ratio:.2%} | GT={gt_label}"
             )
 
-            # Attention weights summary
             if attention_weights is not None:
                 avg_attn = attention_weights.detach().mean().item()
                 max_attn = attention_weights.detach().max().item()
                 print(f"[Detection GAT] Attention: avg={avg_attn:.4f}, max={max_attn:.4f}")
 
-            # Phat nang Attack Agent neu confidence qua cao (bi lo lieu)
+            # Phat Attack Agent neu bi phat hien qua ro rang
             if confidence_score >= 0.95:
                 self.failed_evasion_penalty += 2.0
-                print(f"[Feedback] Bi phat manh (conf={confidence_score:.4f}) -> Phat Attack Agent {self.failed_evasion_penalty} o luot tiep theo.")
+                print(
+                    f"[Feedback] Bi phat manh (conf={confidence_score:.4f}) -> "
+                    f"Attack Agent penalty={self.failed_evasion_penalty:.1f}"
+                )
 
-            # TP / FP / FN (tu moi buoc nay)
+            # TP / FP / FN (dua tren prediction cuoi cung)
             TP_step = 1 if (predicted_attack == 1 and is_attack_gt == 1) else 0
-            FP_step = 1 if (predicted_attack == 1 and is_attack_gt == 0) else 0
+            FP_step = 1 if (predicted_attack == 1 and is_attack_gt == 0) else 0  # luon 0 vi GT=1
             FN_step = 1 if (predicted_attack == 0 and is_attack_gt == 1) else 0
+            TN_step = 1 if (predicted_attack == 0 and is_attack_gt == 0) else 0  # luon 0 vi GT=1
 
-            # Cap nhat sliding window
+            # Cap nhat sliding window (TN cung duoc track trong window)
             self._window_TP.append(TP_step)
             self._window_FP.append(FP_step)
             self._window_FN.append(FN_step)
             self._total_det_steps += 1
 
-            # Precision / Recall tu sliding window (co y nghia thong ke hon 1 mau)
-            sum_TP = sum(self._window_TP)
-            sum_FP = sum(self._window_FP)
-            sum_FN = sum(self._window_FN)
+            # Precision / Recall / F1 / Accuracy tu sliding window
+            # LUU Y: window co maxlen nen chi giu toi da 20 buoc gan nhat.
+            # Tat ca sum_* deu tu cung 1 window -> TN tinh dung la (window_size - TP - FP - FN)
+            sum_TP  = sum(self._window_TP)
+            sum_FP  = sum(self._window_FP)
+            sum_FN  = sum(self._window_FN)
+            win_len = len(self._window_TP)   # so buoc thuc su trong window (<=maxlen)
+            sum_TN  = max(0, win_len - sum_TP - sum_FP - sum_FN)
+
             precision = sum_TP / (sum_TP + sum_FP + 1e-9)
             recall    = sum_TP / (sum_TP + sum_FN + 1e-9)
+            f1        = 2 * precision * recall / (precision + recall + 1e-9)
+            # Accuracy: dung win_len (khong phai total_det_steps) vi sum_TP/FN/FP/TN
+            # deu lay tu window (maxlen=20), khong phai toan bo lich su
+            accuracy  = (sum_TP + sum_TN) / (win_len + 1e-9)
 
             # FN cua buoc nay (dung cho Replay Buffer va Evasion tracking)
             FN = FN_step
 
             # SCF Impact: trung binh co trong so, chuan hoa ve [0, 1]
-            # Max possible avg = 1.0 (neu tat ca action la 'execute' = 1.0)
             scf_impact_raw = calculate_scf_impact(mab_subgraph)
-            scf_impact     = min(scf_impact_raw, 1.0)  # Dam bao nam trong [0, 1]
+            scf_impact     = min(scf_impact_raw, 1.0)
 
-            self.last_mlp_prob  = confidence_score
-            self.last_precision = float(precision)
-            self.last_recall    = float(recall)
-            self.last_FN        = FN
+            self.last_mlp_prob   = confidence_score
+            self.last_precision  = float(precision)
+            self.last_recall     = float(recall)
+            self.last_FN         = FN
             self.last_scf_impact = float(scf_impact)
 
-            # MAB update
-            mab_success = (TP == 1) or (anomaly_ratio > 0.3)
+            # MAB update: thanh cong neu Detection dung (TP) hoac co anomaly cao
+            mab_success = (TP_step == 1) or (anomaly_ratio > 0.3)
             self.mab.update(chosen_arm, reward_positive=mab_success)
 
-            # 7. Prioritized Replay Buffer: lưu Hard Samples khi FN=1
+            # 7. Prioritized Replay Buffer: luu Hard Samples khi FN=1
             if FN == 1:
                 boundary_dist = 1.0 - abs(confidence_score - 0.5) * 2.0
                 hard_sample   = {
@@ -660,7 +675,7 @@ class ProvenanceGraphEnv:
                     f"priority={boundary_dist:.4f}). Buffer size: {len(self.replay_buffer)}"
                 )
 
-                # Lưu hard sample subgraph vào file
+                # Luu hard sample subgraph vao file
                 if getattr(self, "run_dir", None):
                     hard_path = os.path.join(self.run_dir, "hard_samples.txt")
                     with open(hard_path, "a", encoding="utf-8") as f:
@@ -676,15 +691,15 @@ class ProvenanceGraphEnv:
                             )
                         f.write("\n")
 
-                # Closed-loop feedback → compute_closed_loop_reward
+                # Closed-loop feedback
                 if _CLOSED_LOOP_AVAILABLE and self.last_gen_reward:
                     feedback = {
-                        "graph_id":        "marl_env_graph",
-                        "predicted_label": pred_label,
-                        "malicious_score": confidence_score,
-                        "confidence":      confidence_score,
+                        "graph_id":          "marl_env_graph",
+                        "predicted_label":   pred_label,
+                        "malicious_score":   confidence_score,
+                        "confidence":        confidence_score,
                         "is_false_negative": bool(FN == 1),
-                        "detector_name":   "GATs-SLOT-extension",
+                        "detector_name":     "GATs-SLOT-extension",
                     }
                     cl_reward = compute_closed_loop_reward(feedback, self.last_gen_reward)
                     print(
@@ -697,8 +712,15 @@ class ProvenanceGraphEnv:
 
             reward = (precision + recall - self.lambda_fn_penalty * FN) + scf_impact
             print(
-                f"[Detection GAT] Precision={precision:.2f} | Recall={recall:.2f} | "
-                f"SCF={scf_impact:.2f} | FN={FN} | Reward={reward:.4f}"
+                f"[Detection GAT Metrics] "
+                f"Conf={confidence_score:.3f} | "
+                f"Acc={accuracy:.2%} | Prec={precision:.4f} | Recall={recall:.4f} | F1={f1:.4f} | "
+                f"FN={FN} | SCF={scf_impact:.3f}"
+            )
+            print(
+                f"[Detection GAT Window] "
+                f"TP={sum_TP} FP={sum_FP} FN={sum_FN} TN={sum_TN} "
+                f"(win={win_len}/{self._total_det_steps} total) | Reward={reward:.4f}"
             )
             return float(reward)
 
@@ -719,14 +741,18 @@ class ProvenanceGraphEnv:
           3. Backward + optimizer step
           4. Lưu best_mlp.pth nếu metric tốt hơn
           5. Recompute Fisher (chuẩn bị task tiếp theo)
+
+        Returns:
+            global_f1 (float | None): Global F1 trên tap test doc lap sau khi update.
+                                      None neu buffer qua nho hoac danh gia that bai.
         """
         if len(self.replay_buffer) < 2:
             print(f"[EWC] Buffer quá nhỏ ({len(self.replay_buffer)} mẫu). Bỏ qua.")
-            return
+            return None
 
         batch = self.replay_buffer.sample(batch_size)
         if not batch:
-            return
+            return None
 
         x_list, y_list = [], []
         for s in batch:
@@ -736,52 +762,269 @@ class ProvenanceGraphEnv:
         x_batch = torch.cat(x_list, dim=0).to(device)
         y_batch = torch.tensor(y_list, dtype=torch.long).to(device)
 
+        # ── Mix in real benign samples tu UNICORN cache ────
+        # Replay Buffer chi chua Hard Samples (FN=1, label=1).
+        # Neu chi train voi label=1, MLP se hoc predict all-Malicious.
+        # Khong dung noise nua, ma dung real benign latents de giu dac trung that!
+        uni_x, uni_y = self._get_unicorn_test_set()
+        benign_indices = torch.where(uni_y == 0)[0]
+        n_benign = max(1, len(batch) // 2)
+        
+        if len(benign_indices) > 0:
+            # Random sample n_benign tu tap benign that
+            import random
+            sampled_idx = random.choices(benign_indices.tolist(), k=n_benign)
+            benign_x = uni_x[sampled_idx].to(device)
+            benign_y = torch.zeros(n_benign, dtype=torch.long).to(device)
+        else:
+            # Fallback neu vi ly do nao do ko co benign (gan nhu khong the)
+            benign_x = torch.randn(n_benign, x_batch.shape[-1]).to(device) * 0.05
+            benign_y = torch.zeros(n_benign, dtype=torch.long).to(device)
+
+        x_batch_aug = torch.cat([x_batch, benign_x], dim=0)
+        y_batch_aug = torch.cat([y_batch, benign_y], dim=0)
+
+        # Shuffle de tranh bias thu tu
+        perm        = torch.randperm(len(x_batch_aug))
+        x_batch_aug = x_batch_aug[perm]
+        y_batch_aug = y_batch_aug[perm]
+
         if not self._ewc_initialized and len(self.replay_buffer) >= 4:
-            self.detection_mlp.compute_fisher([(x_batch, y_batch)], device, num_samples=len(batch))
+            self.detection_mlp.compute_fisher([(x_batch_aug, y_batch_aug)], device, num_samples=len(batch))
             self._ewc_initialized = True
 
         self.detection_mlp.train()
         self.det_optimizer.zero_grad()
 
-        outputs    = self.detection_mlp(x_batch)
-        log_out    = torch.log(outputs + 1e-9)
-        ce_loss    = F.nll_loss(log_out, y_batch)
-        ewc_pen    = self.detection_mlp.ewc_loss()
-        loss       = ce_loss + ewc_pen
+        outputs = self.detection_mlp(x_batch_aug)
+        log_out = torch.log(outputs + 1e-9)
+        ce_loss = F.nll_loss(log_out, y_batch_aug)
+        ewc_pen = self.detection_mlp.ewc_loss()
+        loss    = ce_loss + ewc_pen
 
         loss.backward()
         self.det_optimizer.step()
         self.detection_mlp.eval()
 
+        # ── Tinh chinh xac cac metrics sau khi update ────────────────
+        from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
         with torch.no_grad():
-            preds     = outputs.argmax(dim=1)
-            correct   = (preds == y_batch).float().mean().item()
-            det_score = correct
+            preds = outputs.argmax(dim=1)
+            y_np  = y_batch_aug.cpu().numpy()
+            p_np  = preds.cpu().numpy()
+
+            # Confusion matrix elements
+            TP_m = int(((p_np == 1) & (y_np == 1)).sum())
+            FP_m = int(((p_np == 1) & (y_np == 0)).sum())
+            FN_m = int(((p_np == 0) & (y_np == 1)).sum())
+            TN_m = int(((p_np == 0) & (y_np == 0)).sum())
+
+            n_total   = len(y_np)
+            accuracy  = float(accuracy_score(y_np, p_np))
+            precision = float(precision_score(y_np, p_np, zero_division=0))
+            recall    = float(recall_score(y_np, p_np, zero_division=0))
+            f1_val    = float(f1_score(y_np, p_np, zero_division=0))
+
+            # det_score dung F1 thay vi accuracy don thuan
+            # F1 can bang giua Precision va Recall, kho bi "gian doi" boi class imbalance
+            det_score = f1_val
 
         ewc_val = ewc_pen.item() if hasattr(ewc_pen, "item") else float(ewc_pen)
         print(
-            f"[EWC] Loss={loss.item():.4f} (CE={ce_loss.item():.4f} + EWC={ewc_val:.4f}) "
-            f"| Acc={correct:.2%} | Buffer={len(self.replay_buffer)}"
+            f"[EWC] Loss={loss.item():.4f} (CE={ce_loss.item():.4f} + EWC={ewc_val:.4f}) | "
+            f"Buffer={len(self.replay_buffer)}"
+        )
+        print(
+            f"[EWC Metrics (Mini-batch)] Acc={accuracy:.2%} | "
+            f"Prec={precision:.4f} | Recall={recall:.4f} | F1={f1_val:.4f} | "
+            f"TP={TP_m} FP={FP_m} FN={FN_m} TN={TN_m} | "
+            f"N={n_total} (mal={int(y_np.sum())}, ben={int((y_np==0).sum())})"
         )
 
-        if det_score > self.best_det_score:
-            self.best_det_score = det_score
-            # Luu vao run_dir (log theo timestamp)
+        if self._ewc_initialized:
+            self.detection_mlp.compute_fisher(
+                [(x_batch_aug.detach(), y_batch_aug.detach())], device, num_samples=len(batch)
+            )
+
+        # ── Danh gia model tren tap test doc lap (toan cuc) ──────────
+        global_f1 = self.evaluate_detection_mlp(run_dir=run_dir)
+
+        # ── Luu best_mlp.pth vao run_dir (chi run nay) ──────────────────
+        if global_f1 is not None and global_f1 > self.best_det_score:
+            self.best_det_score = global_f1
+            # Luu vao run_dir (moi run co file rieng, khong anh huong run khac)
             if run_dir is not None:
                 os.makedirs(run_dir, exist_ok=True)
                 run_path = os.path.join(run_dir, "best_mlp.pth")
                 torch.save(self.detection_mlp.state_dict(), run_path)
-                print(f"[EWC] Saved run checkpoint -> {run_path} (score={det_score:.4f})")
-            # Luu vao thu muc goc (persistent best - dung cho lan chay tiep theo)
-            base_dir = os.path.dirname(os.path.abspath(__file__))
-            global_best_path = os.path.join(base_dir, "best_mlp.pth")
-            torch.save(self.detection_mlp.state_dict(), global_best_path)
-            print(f"[EWC] New global best DetectionMLP -> {global_best_path} (score={det_score:.4f})")
+                print(f"[EWC] 🏆 New best DetectionMLP -> {run_path} (Global F1={global_f1:.4f})")
 
-        if self._ewc_initialized:
-            self.detection_mlp.compute_fisher(
-                [(x_batch.detach(), y_batch.detach())], device, num_samples=len(batch)
-            )
+        return global_f1
+
+    # ─────────────────────────────────────────────────────────────────
+    # Evaluate DetectionMLP tren tap test doc lap sau moi EWC update
+    # ─────────────────────────────────────────────────────────────────
+
+    def evaluate_detection_mlp(self, run_dir: str = None):
+        """
+        Danh gia DetectionMLP sau moi lan EWC update tren tap test doc lap.
+
+        Test set xay dung tu:
+          - Malicious: latent vectors tu PrioritizedReplayBuffer (graph that tu Attack Agent)
+          - Benign: latent vectors tinh tu UNICORN base graph qua GAT (graph that tu dataset)
+
+        Metrics duoc tinh chinh xac tu inference (khong phai tu training batch):
+          Accuracy, Precision, Recall, F1
+        """
+        self.detection_mlp.eval()
+
+        eval_x, eval_y = [], []
+
+        # ── 1. Malicious samples tu Replay Buffer ─────────────────────
+        if len(self.replay_buffer) > 0:
+            mal_samples = self.replay_buffer.sample(min(16, len(self.replay_buffer)))
+            for s in mal_samples:
+                latent = s["latent"]
+                if latent.dim() == 1:
+                    latent = latent.unsqueeze(0)
+                eval_x.append(latent)
+                eval_y.append(1)  # Malicious
+
+        # ── 2. Samples tu UNICORN dataset (150 do thi nhu train_mlp.py) ──
+        # Day la test set chinh xac de dong bo voi pretrain
+        uni_x, uni_y = self._get_unicorn_test_set()
+        if len(uni_y) > 0:
+            for i in range(len(uni_y)):
+                eval_x.append(uni_x[i].unsqueeze(0))
+                eval_y.append(uni_y[i].item())
+
+        if len(eval_x) < 2:
+            print("[Eval] Khong du du lieu de danh gia (can it nhat 2 mau).")
+            return
+
+        # ── 3. Inference ─────────────────────────────────────────────
+        x_eval = torch.cat(eval_x, dim=0).to(device)
+        y_eval = torch.tensor(eval_y, dtype=torch.long).to(device)
+
+        with torch.no_grad():
+            probs  = self.detection_mlp(x_eval)   # [N, 2] Softmax
+            preds  = probs.argmax(dim=1)
+            y_np   = y_eval.cpu().numpy()
+            p_np   = preds.cpu().numpy()
+            prob_np = probs[:, 1].cpu().numpy()   # xac suat class Malicious
+
+        # ── 4. Confusion matrix & metrics ────────────────────────────
+        from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, classification_report
+        TP = int(((p_np == 1) & (y_np == 1)).sum())
+        FP = int(((p_np == 1) & (y_np == 0)).sum())
+        FN = int(((p_np == 0) & (y_np == 1)).sum())
+        TN = int(((p_np == 0) & (y_np == 0)).sum())
+
+        n_total   = len(y_np)
+        accuracy  = float(accuracy_score(y_np, p_np))
+        precision = float(precision_score(y_np, p_np, zero_division=0))
+        recall    = float(recall_score(y_np, p_np, zero_division=0))
+        f1        = float(f1_score(y_np, p_np, zero_division=0))
+
+        report = classification_report(y_np, p_np, labels=[0, 1], target_names=['Benign', 'Malicious'], zero_division=0)
+
+        # Conf trung binh tren cac mau Malicious (do tin cay model)
+        mal_idx  = (y_np == 1)
+        avg_mal_conf = float(prob_np[mal_idx].mean()) if mal_idx.any() else 0.0
+        ben_idx  = (y_np == 0)
+        avg_ben_conf = float(prob_np[ben_idx].mean()) if ben_idx.any() else 0.0
+
+        print(
+            f"\n[Eval Post-EWC] === Detection MLP Evaluation (Real Test Set) ===\n"
+            f"  Samples : {n_total} (mal={int(y_np.sum())}, ben={int((y_np==0).sum())})\n"
+            f"  Accuracy : {accuracy:.4f} ({accuracy:.2%})\n"
+            f"  Precision: {precision:.4f}\n"
+            f"  Recall   : {recall:.4f}\n"
+            f"  F1-score : {f1:.4f}\n"
+            f"  Confusion: TP={TP} FP={FP} FN={FN} TN={TN}\n"
+            f"  Avg conf (Malicious samples): {avg_mal_conf:.4f}\n"
+            f"  Avg conf (Benign   samples) : {avg_ben_conf:.4f}\n"
+            f"  Classification Report:\n"
+            f"{report}"
+        )
+
+        # Luu ket qua danh gia vao file
+        if run_dir is not None:
+            eval_log = os.path.join(run_dir, "eval_metrics.csv")
+            import csv, time
+            write_header = not os.path.exists(eval_log)
+            with open(eval_log, "a", newline="") as f:
+                writer = csv.writer(f)
+                if write_header:
+                    writer.writerow([
+                        "timestamp", "n_total", "n_mal", "n_ben",
+                        "accuracy", "precision", "recall", "f1",
+                        "TP", "FP", "FN", "TN",
+                        "avg_mal_conf", "avg_ben_conf"
+                    ])
+                writer.writerow([
+                    time.strftime("%Y-%m-%d %H:%M:%S"),
+                    n_total, int(y_np.sum()), int((y_np == 0).sum()),
+                    f"{accuracy:.4f}", f"{precision:.4f}",
+                    f"{recall:.4f}", f"{f1:.4f}",
+                    TP, FP, FN, TN,
+                    f"{avg_mal_conf:.4f}", f"{avg_ben_conf:.4f}"
+                ])
+            print(f"  [Eval] Logged -> {eval_log}")
+            
+        return f1
+    def _get_unicorn_test_set(self):
+        """
+        Doc va trich xuat latent (GAT embeddings) cho toan bo tap test UNICORN (0-149.txt).
+        - 0 -> 124: Benign
+        - 125 -> 149: Malicious (Attack)
+        Ket qua duoc cache lai de dung nhieu lan sau moi EWC update khong bi cham.
+        """
+        if hasattr(self, '_cached_unicorn_x'):
+            return self._cached_unicorn_x, self._cached_unicorn_y
+
+        import pandas as pd
+        print("[Eval] Dang trich xuat tap test UNICORN (lan dau tien)...")
+        eval_x = []
+        eval_y = []
+
+        for i in range(150):
+            fpath = os.path.join("unicorn", f"{i}.txt")
+            if not os.path.exists(fpath):
+                continue
+            try:
+                # Format file cua unicorn dataset la csv tab-separated
+                df = pd.read_csv(fpath, sep='\t', names=['actorID', 'actor_type', 'objectID', 'object', 'action', 'timestamp'])
+                label = 0 if i < 125 else 1
+                
+                phrases, _, edge_idx, _ = prepare_graph(df)
+                if len(phrases) == 0:
+                    continue
+                nodes_feat = [infer(x, self.w2vmodel, self.encoder) for x in phrases]
+                x_t        = torch.tensor(np.array(nodes_feat), dtype=torch.float32).to(device)
+                e_t        = torch.tensor(edge_idx, dtype=torch.long).to(device)
+
+                if e_t.shape[1] == 0:
+                    continue
+
+                self.gat.eval()
+                with torch.no_grad():
+                    emb    = self.gat(x_t, e_t)
+                    latent = emb.mean(dim=0).unsqueeze(0).cpu()   # [1, 20]
+                eval_x.append(latent)
+                eval_y.append(label)
+            except Exception as e:
+                pass
+                
+        if len(eval_x) == 0:
+            self._cached_unicorn_x = torch.zeros((0, 20))
+            self._cached_unicorn_y = torch.zeros((0,), dtype=torch.long)
+        else:
+            self._cached_unicorn_x = torch.cat(eval_x, dim=0)
+            self._cached_unicorn_y = torch.tensor(eval_y, dtype=torch.long)
+            
+        print(f"[Eval] Da cache {len(eval_y)} do thi UNICORN (Benign={int((self._cached_unicorn_y==0).sum())}, Attack={int((self._cached_unicorn_y==1).sum())}).")
+        return self._cached_unicorn_x, self._cached_unicorn_y
 
     # ─────────────────────────────────────────────────────────────────
     # Step

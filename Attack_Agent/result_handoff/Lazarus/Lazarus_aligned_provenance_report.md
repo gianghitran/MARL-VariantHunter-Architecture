@@ -2,8 +2,8 @@
 
 - DOT: `D:\notebook_UITNam3\Nam3_ki2\dacn\TAGAPT\TAGAPT_APTDetection\Attack_Agent\result_handoff\Lazarus/Lazarus_aligned_provenance.dot`
 - Quality valid: `True`
-- Nodes: `47`
-- Edges: `64`
+- Nodes: `46`
+- Edges: `62`
 - Clusters: `4`
 - Total reward: `0.8050`
 - Transition quality: `0.5496`

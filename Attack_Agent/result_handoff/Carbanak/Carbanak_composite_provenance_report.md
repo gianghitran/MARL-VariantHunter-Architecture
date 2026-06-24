@@ -2,8 +2,8 @@
 
 - DOT: `D:\notebook_UITNam3\Nam3_ki2\dacn\TAGAPT\TAGAPT_APTDetection\Attack_Agent\result_handoff\Carbanak/Carbanak_composite_provenance.dot`
 - Quality valid: `True`
-- Nodes: `39`
-- Edges: `53`
+- Nodes: `40`
+- Edges: `54`
 - Clusters: `4`
 - Total reward: `0.7418`
 - Transition quality: `0.4599`

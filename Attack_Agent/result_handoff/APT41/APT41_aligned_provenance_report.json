@@ -4,8 +4,8 @@
   "dot_path": "D:\\notebook_UITNam3\\Nam3_ki2\\dacn\\TAGAPT\\TAGAPT_APTDetection\\Attack_Agent\\result_handoff\\APT41/APT41_aligned_provenance.dot",
   "quality_valid": false,
   "stats": {
-    "nodes": 46,
-    "edges": 61,
+    "nodes": 43,
+    "edges": 58,
     "clusters": 4
   },
   "reward": {

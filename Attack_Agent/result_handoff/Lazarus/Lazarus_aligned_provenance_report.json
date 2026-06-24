@@ -4,8 +4,8 @@
   "dot_path": "D:\\notebook_UITNam3\\Nam3_ki2\\dacn\\TAGAPT\\TAGAPT_APTDetection\\Attack_Agent\\result_handoff\\Lazarus/Lazarus_aligned_provenance.dot",
   "quality_valid": true,
   "stats": {
-    "nodes": 47,
-    "edges": 64,
+    "nodes": 46,
+    "edges": 62,
     "clusters": 4
   },
   "reward": {

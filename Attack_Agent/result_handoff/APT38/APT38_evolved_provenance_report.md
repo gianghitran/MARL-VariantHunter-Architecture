@@ -2,18 +2,16 @@
 
 - DOT: `D:\notebook_UITNam3\Nam3_ki2\dacn\TAGAPT\TAGAPT_APTDetection\Attack_Agent\result_handoff\APT38/APT38_evolved_provenance.dot`
 - Quality valid: `True`
-- Nodes: `41`
-- Edges: `56`
-- Clusters: `4`
-- Total reward: `0.7219`
-- Transition quality: `0.6475`
+- Nodes: `56`
+- Edges: `76`
+- Clusters: `5`
+- Total reward: `0.7988`
+- Transition quality: `0.4878`
 - Cluster validity: `1.0000`
 
 ## Kill Chain
-1. `T1588.002` Tool (resource-development) -> score=0.1750, bridge=file
-2. `T1574.012` COR_PROFILER (stealth) -> score=0.9475, bridge=socket
-3. `T1047` Windows Management Instrumentation (execution) -> score=0.8201, bridge=socket
-4. `T1197` BITS Jobs (stealth)
-
-## Pruned Techniques
-- `T1195.002`: weak transition and stronger/equal bypass (incoming=0.1750, bypass=0.1750)
+1. `T1588.002` Tool (resource-development) -> score=0.1750, bridge=socket
+2. `T1195.002` Compromise Software Supply Chain (initial-access) -> score=0.4456, bridge=file
+3. `T1059.003` Windows Command Shell (execution) -> score=0.8201, bridge=socket
+4. `T1197` BITS Jobs (stealth) -> score=0.5104, bridge=socket
+5. `T1615` Group Policy Discovery (discovery)

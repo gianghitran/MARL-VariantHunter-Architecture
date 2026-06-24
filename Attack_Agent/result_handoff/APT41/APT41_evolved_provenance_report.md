@@ -2,10 +2,10 @@
 
 - DOT: `D:\notebook_UITNam3\Nam3_ki2\dacn\TAGAPT\TAGAPT_APTDetection\Attack_Agent\result_handoff\APT41/APT41_evolved_provenance.dot`
 - Quality valid: `False`
-- Nodes: `44`
-- Edges: `59`
+- Nodes: `40`
+- Edges: `54`
 - Clusters: `4`
-- Total reward: `0.6929`
+- Total reward: `0.6956`
 - Transition quality: `0.7898`
 - Cluster validity: `1.0000`
 
