@@ -32,21 +32,8 @@ Working end-to-end and benchmarked:
 
 ## Architecture
 
-```
-            ┌──────────────────────────────┐
-            │   PPO Coordinator (main.py)   │
-            │   selects an agent per step    │
-            └───────┬───────────────┬───────┘
-                    │               │
-            Generation Agent   Detection Agent
-                    |        (GAT → MLP, EWC)
-                    │               │
-                    └──────┬────────┘
-                           ▼
-            Prioritized Replay Buffer (hard / FN samples)
-                           ▼
-            EWC continual-learning update → best checkpoint
-```
+<img width="524" alt="Architecture" src="https://github.com/user-attachments/assets/3ffef9fd-3291-497f-9627-eff046f4a81f" />
+
 
 **Episode loop:** encode current graph state → coordinator picks an action → run the agent → collect reward → PPO update → offline EWC update of the Detection Agent from the replay buffer → save artifacts to `runs/<timestamp>/` (or `EXP_RUN_DIR`).
 
