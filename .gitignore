@@ -1,3 +1,21 @@
+# Model weights
 raw_unicorn/
 trained_weights/
 unicorn/
+
+# Experiment outputs
+runs/
+
+# Logs
+*.log
+pretrain_run.log
+*.stackdump
+
+# Cache
+**/__pycache__/
+
+# Dataset
+**/cadets/
+
+# Generated documents
+**/*.pdf
