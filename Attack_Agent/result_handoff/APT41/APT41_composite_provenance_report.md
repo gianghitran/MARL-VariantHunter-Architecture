@@ -1,9 +1,9 @@
 # APT41 composite provenance report
 
-- DOT: `D:\notebook_UITNam3\Nam3_ki2\dacn\TAGAPT\TAGAPT_APTDetection\Attack_Agent\result_handoff\APT41/APT41_composite_provenance.dot`
+- DOT: `/home/tmkhiem/nmuggle/LLM-ProvenanceGraph_APTDetection/Attack_Agent/result_handoff/APT41/APT41_composite_provenance.dot`
 - Quality valid: `False`
-- Nodes: `45`
-- Edges: `60`
+- Nodes: `43`
+- Edges: `57`
 - Clusters: `4`
 - Total reward: `0.7040`
 - Transition quality: `0.7898`

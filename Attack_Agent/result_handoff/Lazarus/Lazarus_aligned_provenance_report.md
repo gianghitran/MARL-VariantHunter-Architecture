@@ -1,11 +1,11 @@
 # Lazarus aligned provenance report
 
-- DOT: `D:\notebook_UITNam3\Nam3_ki2\dacn\TAGAPT\TAGAPT_APTDetection\Attack_Agent\result_handoff\Lazarus/Lazarus_aligned_provenance.dot`
+- DOT: `/home/tmkhiem/nmuggle/LLM-ProvenanceGraph_APTDetection/Attack_Agent/result_handoff/Lazarus/Lazarus_aligned_provenance.dot`
 - Quality valid: `True`
 - Nodes: `46`
 - Edges: `62`
 - Clusters: `4`
-- Total reward: `0.8050`
+- Total reward: `0.7978`
 - Transition quality: `0.5496`
 - Cluster validity: `1.0000`
 

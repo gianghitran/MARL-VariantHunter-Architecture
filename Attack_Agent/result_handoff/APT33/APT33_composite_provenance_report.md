@@ -1,11 +1,11 @@
 # APT33 composite provenance report
 
-- DOT: `D:\notebook_UITNam3\Nam3_ki2\dacn\TAGAPT\TAGAPT_APTDetection\Attack_Agent\result_handoff\APT33/APT33_composite_provenance.dot`
+- DOT: `/home/tmkhiem/nmuggle/LLM-ProvenanceGraph_APTDetection/Attack_Agent/result_handoff/APT33/APT33_composite_provenance.dot`
 - Quality valid: `True`
-- Nodes: `45`
-- Edges: `61`
+- Nodes: `41`
+- Edges: `55`
 - Clusters: `4`
-- Total reward: `0.7348`
+- Total reward: `0.7270`
 - Transition quality: `0.7145`
 - Cluster validity: `1.0000`
 

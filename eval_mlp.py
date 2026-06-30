@@ -20,12 +20,12 @@ def main():
     print(f"Using device: {device}")
     
     # Load Word2Vec and Encoder
-    w2v_model_path = os.path.join(BASE_DIR, "trained_weights", "unicorn", "unicorn.model")
+    w2v_model_path = os.path.join(BASE_DIR, "trained_weights", "darpa", "w2v.model")
     encoder = PositionalEncoder(30)
     w2vmodel = Word2Vec.load(w2v_model_path)
     
     # 1. Load GAT model
-    gat_path = os.path.join(BASE_DIR, "trained_weights", "unicorn", "unicorn0_gat.pth")
+    gat_path = os.path.join(BASE_DIR, "trained_weights", "darpa", "gat.pth")
     # Must match train_mlp.py architecture exactly!
     gat = GAT(in_channels=30, out_channels=20, hidden_dim=64, heads=8, dropout=0.3).to(device)
     gat.load_state_dict(torch.load(gat_path, map_location=device, weights_only=True))
@@ -33,7 +33,7 @@ def main():
     print("Loaded GAT model.")
     
     # 2. Load MLP model
-    mlp_path = os.path.join(BASE_DIR, "trained_weights", "unicorn", "mlp.pth")
+    mlp_path = os.path.join(BASE_DIR, "trained_weights", "darpa", "mlp.pth")
     mlp = DetectionMLP(input_dim=20).to(device)
     mlp.load_state_dict(torch.load(mlp_path, map_location=device, weights_only=True))
     mlp.eval()

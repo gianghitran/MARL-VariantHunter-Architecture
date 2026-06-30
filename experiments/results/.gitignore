@@ -1,0 +1,7 @@
+# Khong commit output thuc nghiem (cache nang, run artifacts). Giu lai chinh .gitignore.
+cache/
+marl_runs/
+*.csv
+# raw/, manifests/, summary.md co the commit neu muon luu ket qua; mac dinh bo qua run output:
+raw/
+!.gitignore

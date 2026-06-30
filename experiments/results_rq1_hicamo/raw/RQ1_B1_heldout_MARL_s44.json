@@ -1,0 +1,33 @@
+{
+  "rq": "RQ1",
+  "condition": "B1_heldout_MARL",
+  "seed": 44,
+  "metrics": {
+    "accuracy": 0.833333333320707,
+    "precision": 0.931034482726516,
+    "recall": 0.7499999999791668,
+    "f1": 0.8307692302494674,
+    "fn_rate": 0.24999999999305558,
+    "auc": 0.9564814814814815,
+    "TP": 27,
+    "FP": 2,
+    "FN": 9,
+    "TN": 28,
+    "n": 66,
+    "n_mal": 36,
+    "n_ben": 30,
+    "n_skipped": 0,
+    "mean_latency_ms": 5.906861211935228,
+    "recovery_rate": 0.25,
+    "retention": 1.0,
+    "delta_f1": 0.05657568237433719,
+    "delta_recall": 0.08333333333101856,
+    "episodes_to_nash": 14
+  },
+  "meta": {
+    "run_tag": "rq1ho_s44_e50",
+    "reused": true,
+    "stop_reason": "CONVERGED",
+    "checkpoint": "/home/tmkhiem/nmuggle/LLM-ProvenanceGraph_APTDetection/experiments/results/marl_runs/rq1ho_s44_e50/best_mlp.pth"
+  }
+}

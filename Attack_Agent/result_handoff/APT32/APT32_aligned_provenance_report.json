@@ -1,24 +1,24 @@
 {
   "apt": "APT32",
   "variant_type": "aligned",
-  "dot_path": "D:\\notebook_UITNam3\\Nam3_ki2\\dacn\\TAGAPT\\TAGAPT_APTDetection\\Attack_Agent\\result_handoff\\APT32/APT32_aligned_provenance.dot",
+  "dot_path": "/home/tmkhiem/nmuggle/LLM-ProvenanceGraph_APTDetection/Attack_Agent/result_handoff/APT32/APT32_aligned_provenance.dot",
   "quality_valid": true,
   "stats": {
-    "nodes": 41,
-    "edges": 56,
+    "nodes": 45,
+    "edges": 60,
     "clusters": 4
   },
   "reward": {
-    "total": 0.7777890536919567,
+    "total": 0.775011275914179,
     "coverage": 0.3333333333333333,
     "connectivity": 1.0,
     "validity": 1.0,
     "novelty": 0.5,
-    "chain_depth": 1.0,
+    "chain_depth": 0.9722222222222222,
     "transition_quality": 0.6945572035862341,
     "cluster_validity": 1.0,
     "macro_reward": 0.5180950212551819,
-    "micro_reward": 1.0
+    "micro_reward": 0.9944444444444445
   },
   "planner_meta": {
     "variant_type": "aligned",

@@ -37,6 +37,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 from torch.distributions import Categorical
 from collections import deque
+import statistics
 
 from networks import CoordinatorNetwork
 from environment import ProvenanceGraphEnv
@@ -237,11 +238,17 @@ class ImprovedStoppingCriterion:
         f1_now  = self.f1_buf[-1]  if self.f1_buf  else 0.0
         eva_now = self.evasion_buf[-1] if self.evasion_buf else 0.0
         fn_now  = self.fn_buf[-1]  if self.fn_buf  else 0.0
+        # std/avg tren cua so Nash — cho thay con cach Nash bao xa (gate chinh).
+        win_eva = list(self.evasion_buf)[-self.patience_nash:]
+        win_f1  = list(self.f1_buf)[-self.patience_nash:]
+        eva_std = statistics.stdev(win_eva) if len(win_eva) > 1 else float("inf")
+        avg_f1  = statistics.mean(win_f1) if win_f1 else 0.0
         return (
-            f"Global_F1={f1_now:.3f} (best={self.best_f1:.3f}) | "
-            f"EvasionRate={eva_now:.3f} (best={self.best_evasion_rate:.3f}) | "
-            f"FN_rate={fn_now:.3f} | "
-            f"NoImprove={self._no_improve_count}/{self.patience_plateau}"
+            f"avgF1={avg_f1:.3f}(>={self.f1_thresh}) | "
+            f"EvaStd={eva_std:.3f}(<{self.evasion_delta}) | "
+            f"FN_rate={fn_now:.3f}(<{self.fn_rate_thresh}) | "
+            f"NoImprove={self._no_improve_count}/{self.patience_plateau} "
+            f"[Nash {len(self.f1_buf)}/{self.patience_nash}]"
         )
 
 
@@ -273,12 +280,28 @@ def run_marl_ppo():
     print("=" * 60)
 
     base_dir  = os.path.dirname(os.path.abspath(__file__))
-    gat_path  = os.path.join(base_dir, "trained_weights", "unicorn", "unicorn0.pth")
-    w2v_path  = os.path.join(base_dir, "trained_weights", "unicorn", "unicorn.model")
+    gat_path  = os.path.join(base_dir, "trained_weights", "darpa", "gat.pth")
+    w2v_path  = os.path.join(base_dir, "trained_weights", "darpa", "w2v.model")
 
-    # ── Tao run_dir rieng biet theo timestamp ─────────────────────
-    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-    run_dir   = os.path.join(base_dir, "runs", timestamp)
+    # ── EXP_SEED: dat seed toan cuc cho reproducibility (mac dinh: khong dat) ──
+    _exp_seed = os.environ.get("EXP_SEED")
+    if _exp_seed is not None:
+        import random as _random
+        import numpy as _np
+        s = int(_exp_seed)
+        _random.seed(s); _np.random.seed(s)
+        torch.manual_seed(s); torch.cuda.manual_seed_all(s)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+        print(f"[Main] EXP_SEED set -> {s} (deterministic)")
+
+    # ── Tao run_dir: EXP_RUN_DIR ghi de (cho experiment harness), neu khong dung timestamp ──
+    _exp_run_dir = os.environ.get("EXP_RUN_DIR")
+    if _exp_run_dir:
+        run_dir = _exp_run_dir
+    else:
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        run_dir   = os.path.join(base_dir, "runs", timestamp)
     os.makedirs(run_dir, exist_ok=True)
     print(f"[Main] Run artifacts -> {run_dir}")
 
@@ -310,6 +333,10 @@ def run_marl_ppo():
     entropy_coeff    = 0.01
     value_coeff      = 0.5
     num_episodes     = 150   # Hard cap (tang tu 100 -> 150 theo proposal)
+    # EXP_NUM_EPISODES: ghi de hard-cap episodes (smoke run cho experiment harness)
+    if os.environ.get("EXP_NUM_EPISODES"):
+        num_episodes = int(os.environ["EXP_NUM_EPISODES"])
+        print(f"[Main] EXP_NUM_EPISODES override -> {num_episodes} episodes")
     ppo_epochs       = 4      # Epochs moi episode
     max_steps        = 15     # Buoc moi episode
     min_det_per_ep   = 2      # Bat buoc goi Detection it nhat 2 lan/episode
@@ -348,6 +375,7 @@ def run_marl_ppo():
         fn_count     = 0      # Dem so FN trong episode
         tp_count     = 0      # Dem so TP trong episode (cho FN_rate)
         det_calls    = 0      # Dem so lan goi Detection
+        fn_rate_win  = getattr(env, "last_fn_rate_win", 0.0)  # FN_rate windowed (StopMonitor)
 
         episode_confidence_scores = []
         episode_det_scores        = []
@@ -377,8 +405,22 @@ def run_marl_ppo():
                 (det_deficit > 0 and steps_left < det_deficit)       # Sap het, thieu Det
             )
 
+            # Fix 4: Drift -> trigger Generation. Neu buoc Detection truoc do phat hien
+            # drift (Wasserstein > tau), buoc nay uu tien sinh variant moi (tru khi
+            # dang phai force Detect). Hien thuc hoa "Drift -> Generation" cua Gap 1.
+            force_generate = getattr(env, "drift_triggered", False) and not force_detect
+            # EXP_DISABLE_GENERATION (RQ2 C0/C1): khong bao gio ep Generation (Action 0 da
+            # la no-op trong env, day chi tranh log DRIFT-TRIGGER vo nghia).
+            if os.environ.get("EXP_DISABLE_GENERATION"):
+                force_generate = False
+
             if force_detect:
-                action = torch.tensor(2)   # Force Detection
+                action = torch.tensor(2, device=device)   # Force Detection
+            elif force_generate:
+                action = torch.tensor(0, device=device)   # Drift-triggered Generation
+                print(f"  [DRIFT-TRIGGER] drift={getattr(env,'last_drift',0.0):.4f} "
+                      f"> tau={env.drift_tau:.3f} -> force Generation")
+                env.drift_triggered = False
             else:
                 action = m.sample()
 
@@ -393,11 +435,14 @@ def run_marl_ppo():
                 det_calls += 1
                 fn_count  += info.get("FN", 0)
                 tp_count  += info.get("TP", 0)
+                # FN_rate WINDOWED (1 - recall tren cua so 20 buoc) — tin hieu on dinh
+                # cho StopMonitor (per-episode fn_rate voi 1-2 call qua nhieu cho Nash).
+                fn_rate_win = info.get("fn_rate_win", fn_rate_win)
                 det_score  = info.get("precision", 0.0) + info.get("recall", 0.0) \
                              - 2.0 * info.get("FN", 0) + info.get("scf_impact", 0.0)
                 episode_det_scores.append(det_score)
 
-            log_probs.append(m.log_prob(torch.tensor(action.item())))
+            log_probs.append(m.log_prob(torch.tensor(action.item(), device=device)))
             values.append(value)
             rewards.append(reward)
             states.append(state)
@@ -410,6 +455,8 @@ def run_marl_ppo():
                 f"Action={action_name} | "
                 f"Reward={reward:+.4f} | "
                 f"Conf={conf:.3f} | "
+                f"Drift={info.get('drift', 0.0):.3f} | "
+                f"Compress={info.get('compression_ratio', 0.0):.0%} | "
                 f"DetCalls={det_calls} | "
                 f"GraphEdges={len(env.current_graph_df)}"
             )
@@ -459,7 +506,12 @@ def run_marl_ppo():
             optimizer.step()
 
         # ── EWC Continual Learning -- Offline Batch Update ─────────
-        global_f1 = env.train_detection_agent_ewc(run_dir=run_dir, batch_size=8)
+        # EXP_DISABLE_EWC (RQ2 C0): bo qua cap nhat continual learning -> detector dung yen
+        # o trong so pretrained (chi danh gia, khong hoc). Van goi evaluate de lay global_f1.
+        if os.environ.get("EXP_DISABLE_EWC"):
+            global_f1 = env.evaluate_detection_mlp(run_dir=run_dir)
+        else:
+            global_f1 = env.train_detection_agent_ewc(run_dir=run_dir, batch_size=8)
         if global_f1 is None:
             global_f1 = env.best_det_score
 
@@ -492,7 +544,10 @@ def run_marl_ppo():
         cl = getattr(env, "last_closed_loop_reward", {})
 
         # ── Update Stopping Criteria ───────────────────────────────
-        stop_reason, stop_msg = stopping.update(global_f1, evasion_rate, fn_rate, total_rew, combined_score)
+        # Nash dung evasion/FN WINDOWED (cua so 20 buoc detection) thay vi per-episode:
+        # per-episode (1-2 call) chi nhan {0,0.5,1.0} -> std qua nhieu -> Nash khong bao
+        # gio trigger. Windowed -> std co nghia, Nash do duoc hoi tu that.
+        stop_reason, stop_msg = stopping.update(global_f1, fn_rate_win, fn_rate_win, total_rew, combined_score)
 
         ep_elapsed = _time.time() - ep_start
 
@@ -541,6 +596,16 @@ def run_marl_ppo():
             print("[STOP-FAILURE] Nen kiem tra lai hyperparameters hoac du lieu.")
             break
 
+
+    # ── Save detection head CUOI CUNG (luon luon) ─────────────────
+    # best_mlp.pth chi luu khi Global F1 cai thien; neu run khong cai thien (vd RQ3
+    # classifier moi train tu dau / collapse) thi van can head dung kien truc de danh
+    # gia -> final_mlp.pth bao dam luon co artifact.
+    final_mlp_path = os.path.join(run_dir, "final_mlp.pth")
+    torch.save(env.detection_mlp.state_dict(), final_mlp_path)
+    # Luu CA GAT cuoi cung (co-evolution train GAT chung head) de eval dung cap GAT+head.
+    torch.save(env.gat.state_dict(), os.path.join(run_dir, "final_gat.pth"))
+    print(f"[Main] Final Detector (GAT+MLP) saved -> {run_dir}")
 
     # ── Save PPO Coordinator final (vao run_dir) ──────────────────
     save_path = os.path.join(run_dir, "ppo_coordinator_final.pth")

@@ -1,23 +1,23 @@
 {
   "apt": "Carbanak",
   "variant_type": "evolved",
-  "dot_path": "D:\\notebook_UITNam3\\Nam3_ki2\\dacn\\TAGAPT\\TAGAPT_APTDetection\\Attack_Agent\\result_handoff\\Carbanak/Carbanak_evolved_provenance.dot",
+  "dot_path": "/home/tmkhiem/nmuggle/LLM-ProvenanceGraph_APTDetection/Attack_Agent/result_handoff/Carbanak/Carbanak_evolved_provenance.dot",
   "quality_valid": true,
   "stats": {
-    "nodes": 57,
-    "edges": 76,
-    "clusters": 5
+    "nodes": 44,
+    "edges": 59,
+    "clusters": 4
   },
   "reward": {
-    "total": 0.802610083236297,
+    "total": 0.7914001799490716,
     "coverage": 0.5,
     "connectivity": 1.0,
     "validity": 1.0,
     "novelty": 0.5,
     "chain_depth": 1.0,
-    "transition_quality": 0.5261008323629697,
+    "transition_quality": 0.41400179949071664,
     "cluster_validity": 1.0,
-    "macro_reward": 0.5341352913270394,
+    "macro_reward": 0.4949006298217508,
     "micro_reward": 1.0
   },
   "planner_meta": {
@@ -27,19 +27,10 @@
       "transitions": [
         {
           "source": "T1588.002",
-          "target": "T1078",
-          "score": 0.4614523878097534,
-          "gnn_score": 0.7101407051086426,
-          "scf_score": 0.1575,
-          "kept": false,
-          "bridge_hint": "socket"
-        },
-        {
-          "source": "T1078",
           "target": "T1659",
-          "score": 0.5689455431699753,
+          "score": 0.16799999999999998,
           "gnn_score": null,
-          "scf_score": 0.5689455431699753,
+          "scf_score": 0.16799999999999998,
           "kept": false,
           "bridge_hint": "socket"
         },
@@ -62,7 +53,14 @@
           "bridge_hint": "file"
         }
       ],
-      "removed": []
+      "removed": [
+        {
+          "technique_id": "T1078.001",
+          "reason": "weak transition and stronger/equal bypass",
+          "incoming_score": 0.1575,
+          "bypass_score": 0.16799999999999998
+        }
+      ]
     },
     "threshold": 0.8
   },
@@ -94,61 +92,10 @@
       },
       "next_transition": {
         "source": "T1588.002",
-        "target": "T1078",
-        "score": 0.4614523878097534,
-        "gnn_score": 0.7101407051086426,
-        "scf_score": 0.1575,
-        "kept": false,
-        "bridge_hint": "socket"
-      }
-    },
-    {
-      "technique_id": "T1078",
-      "technique_name": "Valid Accounts",
-      "tactic": "stealth",
-      "context": {
-        "technique_id": "T1078",
-        "name": "Valid Accounts",
-        "tactics": [
-          "stealth",
-          "persistence",
-          "privilege-escalation",
-          "initial-access"
-        ],
-        "platforms": [
-          "containers",
-          "esxi",
-          "iaas",
-          "identity-provider",
-          "linux",
-          "macos",
-          "network",
-          "office-suite",
-          "saas",
-          "windows"
-        ],
-        "privilege_score": 0.0,
-        "impact": false,
-        "data_sources": [],
-        "capabilities": [
-          "credential",
-          "execution",
-          "file",
-          "network",
-          "persistence",
-          "privilege",
-          "process"
-        ],
-        "requires_network": true,
-        "requires_execution": true,
-        "produces_access": true
-      },
-      "next_transition": {
-        "source": "T1078",
         "target": "T1659",
-        "score": 0.5689455431699753,
+        "score": 0.16799999999999998,
         "gnn_score": null,
-        "scf_score": 0.5689455431699753,
+        "scf_score": 0.16799999999999998,
         "kept": false,
         "bridge_hint": "socket"
       }
@@ -265,22 +212,6 @@
     {
       "technique_id": "T1588.002",
       "tactic": "resource-development",
-      "valid": true,
-      "issues": [],
-      "edge_types": [
-        "EX",
-        "FR",
-        "RF",
-        "WF"
-      ],
-      "node_types": [
-        "file",
-        "process"
-      ]
-    },
-    {
-      "technique_id": "T1078",
-      "tactic": "stealth",
       "valid": true,
       "issues": [],
       "edge_types": [

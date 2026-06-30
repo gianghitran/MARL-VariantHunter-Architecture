@@ -1,0 +1,7 @@
+Nodes: 48
+Edges: 63
+Unique labels: 42
+Tactics: ['reconnaissance', 'stealth']
+Edge types: {'FR': 9, 'WF': 22, 'ST': 4, 'RF': 21, 'RCV': 4, 'EX': 3}
+Semantic violations: 0
+Issues: ["[FAIL] Low tactic diversity: only {'stealth', 'reconnaissance'}"]

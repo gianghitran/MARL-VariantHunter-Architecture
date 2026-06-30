@@ -1,0 +1,31 @@
+{
+  "rq": "RQ1",
+  "condition": "B0_heldout",
+  "seed": 43,
+  "metrics": {
+    "accuracy": 0.7878787878668503,
+    "precision": 0.9230769230414201,
+    "recall": 0.6666666666481482,
+    "f1": 0.7741935478751302,
+    "fn_rate": 0.3333333333240741,
+    "auc": 0.950925925925926,
+    "TP": 24,
+    "FP": 2,
+    "FN": 12,
+    "TN": 28,
+    "n": 66,
+    "n_mal": 36,
+    "n_ben": 30,
+    "n_skipped": 0,
+    "mean_latency_ms": 11.592094814687064
+  },
+  "meta": {
+    "n_FN0": 12,
+    "heldout_apts": [
+      "APT29",
+      "APT33",
+      "Lazarus"
+    ],
+    "baseline": "darpa_ho"
+  }
+}

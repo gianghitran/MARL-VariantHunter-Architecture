@@ -36,12 +36,17 @@ ACTION_TYPE_VOCAB = {
     # Send / connect / mmap
     "ST": 3, "mmap": 3, "send": 3,
     # File-read / receive
-    "FR": 4, "load": 4,
-    # Other / fallback
+    "FR": 4, "load": 4, "LOAD": 4,
+    # Inject ~ execute group
+    "IJ": 2, "inject": 2,
+    # Other / fallback -> idx -1 (khong dem)
 }
 
-N_NODE_TYPES   = len(NODE_TYPE_VOCAB)     # 6
-N_ACTION_TYPES = 5                         # 5 nhom action
+# So BUCKET node-type phan biet (so index khac nhau), KHONG phai so key cua dict
+# (dict co nhieu alias cung map ve 1 index, vd process/thread->1). Dung len(vocab)
+# se ra 13 -> one-hot 13-dim lam lech slot action/structural -> feature sai layout.
+N_NODE_TYPES   = max(NODE_TYPE_VOCAB.values()) + 1   # = 6
+N_ACTION_TYPES = 5                                    # 5 nhom action
 EMBED_DIM      = 30                        # Khop voi GAT in_channels=30 (checkpoint weight shape)
 
 
@@ -95,42 +100,38 @@ def build_node_feature(node_type: str, action_list: list,
     feat[12] = in_deg  / md
     feat[13] = out_deg / md
 
-    # [14:30] zero-pad
-# --- Legacy shim: infer() duoc giu lai de khong bi loi ImportError tu environment.py ---
-# Nhung gio no dung tuple (action_list, node_type) hoac chi action_list
-def infer(document, w2vmodel, encoder):
+    # [14:30] zero-pad (giu nguyen 0 cho mo rong sau)
+    return feat
+
+
+# --- infer(): build feature 30-dim tu (action_list, node_type[, deg, in, out, max_deg]).
+# Thay HOAN TOAN W2V cu (vocab 60 hash UNICORN, KHONG chua action names cua Attack
+# Agent) -> tranh truong hop infer() tra ve np.zeros(30) lam GAT output = 0 (collapse).
+# Tham so w2vmodel/encoder giu lai cho tuong thich chu ky goi cu, KHONG con dung.
+def infer(document, w2vmodel=None, encoder=None):
     """
-    Su dung w2vmodel de embedding cho tap action hashes, ket hop Positional Encoding.
+    Build node feature 30-dim bang build_node_feature (node_type one-hot +
+    action frequency + structural degree), thay cho W2V embedding.
+
+    document co the la:
+      - (action_list, node_type)
+      - (action_list, node_type, degree, in_deg, out_deg, max_deg)  <- tu prepare_graph
+      - action_list (node_type='unknown')
     """
-    if isinstance(document, tuple) and len(document) == 2:
-        action_list, node_type = document
+    deg = in_deg = out_deg = 0
+    max_deg = 1
+    if isinstance(document, (tuple, list)):
+        action_list = document[0]
+        node_type   = document[1] if len(document) >= 2 else "unknown"
+        if len(document) >= 6:
+            deg, in_deg, out_deg, max_deg = (
+                document[2], document[3], document[4], document[5]
+            )
     else:
         action_list = document
-        node_type = "unknown"
-        
-    if not w2vmodel:
-        return np.zeros(30, dtype=np.float32)
-        
-    vecs = []
-    for i, action in enumerate(action_list):
-        action_str = str(action).strip()
-        if action_str in w2vmodel.wv:
-            # Lấy vector tu Word2Vec [30]
-            v = w2vmodel.wv[action_str].copy()
-            if encoder is not None:
-                try:
-                    import torch
-                    pos = torch.tensor([i], dtype=torch.long)
-                    pos_emb = encoder(pos).squeeze(0).detach().numpy()
-                    v += pos_emb
-                except Exception:
-                    pass
-            vecs.append(v)
-            
-    if len(vecs) == 0:
-        return np.zeros(30, dtype=np.float32)
-        
-    return np.mean(vecs, axis=0)
+        node_type   = "unknown"
+
+    return build_node_feature(node_type, action_list, deg, in_deg, out_deg, max_deg)
 
 
 def prepare_graph(df):
@@ -179,8 +180,20 @@ def prepare_graph(df):
         1
     )
 
-    # Build feature phrases (danh sach action, node_type) cho tung node
-    features   = [(nodes[n], node_types.get(n, "unknown")) for n in node_names]
+    # Build feature phrases cho tung node:
+    #   (action_list, node_type, degree, in_deg, out_deg, max_deg)
+    # Kem theo degree de infer()/build_node_feature tinh duoc structural features.
+    features = [
+        (
+            nodes[n],
+            node_types.get(n, "unknown"),
+            out_degrees.get(n, 0) + in_degrees.get(n, 0),
+            in_degrees.get(n, 0),
+            out_degrees.get(n, 0),
+            max_deg,
+        )
+        for n in node_names
+    ]
     feat_labels = [-1] * len(node_names)
 
     # Edge index: dung index trong node_names

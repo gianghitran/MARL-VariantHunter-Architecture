@@ -1,0 +1,483 @@
+{
+  "name": "rq1_heldout_test",
+  "darpa_dataset": "cadets",
+  "darpa_seed": 20240629,
+  "n_total": 66,
+  "n_mal": 36,
+  "n_ben": 30,
+  "samples": [
+    {
+      "sample_id": "darpa_ben_000",
+      "label": 0,
+      "source": "darpa",
+      "apt": null,
+      "variant": null
+    },
+    {
+      "sample_id": "darpa_ben_001",
+      "label": 0,
+      "source": "darpa",
+      "apt": null,
+      "variant": null
+    },
+    {
+      "sample_id": "darpa_ben_002",
+      "label": 0,
+      "source": "darpa",
+      "apt": null,
+      "variant": null
+    },
+    {
+      "sample_id": "darpa_ben_003",
+      "label": 0,
+      "source": "darpa",
+      "apt": null,
+      "variant": null
+    },
+    {
+      "sample_id": "darpa_ben_004",
+      "label": 0,
+      "source": "darpa",
+      "apt": null,
+      "variant": null
+    },
+    {
+      "sample_id": "darpa_ben_005",
+      "label": 0,
+      "source": "darpa",
+      "apt": null,
+      "variant": null
+    },
+    {
+      "sample_id": "darpa_ben_006",
+      "label": 0,
+      "source": "darpa",
+      "apt": null,
+      "variant": null
+    },
+    {
+      "sample_id": "darpa_ben_007",
+      "label": 0,
+      "source": "darpa",
+      "apt": null,
+      "variant": null
+    },
+    {
+      "sample_id": "darpa_ben_008",
+      "label": 0,
+      "source": "darpa",
+      "apt": null,
+      "variant": null
+    },
+    {
+      "sample_id": "darpa_ben_009",
+      "label": 0,
+      "source": "darpa",
+      "apt": null,
+      "variant": null
+    },
+    {
+      "sample_id": "darpa_ben_010",
+      "label": 0,
+      "source": "darpa",
+      "apt": null,
+      "variant": null
+    },
+    {
+      "sample_id": "darpa_ben_011",
+      "label": 0,
+      "source": "darpa",
+      "apt": null,
+      "variant": null
+    },
+    {
+      "sample_id": "darpa_ben_012",
+      "label": 0,
+      "source": "darpa",
+      "apt": null,
+      "variant": null
+    },
+    {
+      "sample_id": "darpa_ben_013",
+      "label": 0,
+      "source": "darpa",
+      "apt": null,
+      "variant": null
+    },
+    {
+      "sample_id": "darpa_ben_014",
+      "label": 0,
+      "source": "darpa",
+      "apt": null,
+      "variant": null
+    },
+    {
+      "sample_id": "darpa_ben_015",
+      "label": 0,
+      "source": "darpa",
+      "apt": null,
+      "variant": null
+    },
+    {
+      "sample_id": "darpa_ben_016",
+      "label": 0,
+      "source": "darpa",
+      "apt": null,
+      "variant": null
+    },
+    {
+      "sample_id": "darpa_ben_017",
+      "label": 0,
+      "source": "darpa",
+      "apt": null,
+      "variant": null
+    },
+    {
+      "sample_id": "darpa_ben_018",
+      "label": 0,
+      "source": "darpa",
+      "apt": null,
+      "variant": null
+    },
+    {
+      "sample_id": "darpa_ben_019",
+      "label": 0,
+      "source": "darpa",
+      "apt": null,
+      "variant": null
+    },
+    {
+      "sample_id": "darpa_ben_020",
+      "label": 0,
+      "source": "darpa",
+      "apt": null,
+      "variant": null
+    },
+    {
+      "sample_id": "darpa_ben_021",
+      "label": 0,
+      "source": "darpa",
+      "apt": null,
+      "variant": null
+    },
+    {
+      "sample_id": "darpa_ben_022",
+      "label": 0,
+      "source": "darpa",
+      "apt": null,
+      "variant": null
+    },
+    {
+      "sample_id": "darpa_ben_023",
+      "label": 0,
+      "source": "darpa",
+      "apt": null,
+      "variant": null
+    },
+    {
+      "sample_id": "darpa_ben_024",
+      "label": 0,
+      "source": "darpa",
+      "apt": null,
+      "variant": null
+    },
+    {
+      "sample_id": "darpa_ben_025",
+      "label": 0,
+      "source": "darpa",
+      "apt": null,
+      "variant": null
+    },
+    {
+      "sample_id": "darpa_ben_026",
+      "label": 0,
+      "source": "darpa",
+      "apt": null,
+      "variant": null
+    },
+    {
+      "sample_id": "darpa_ben_027",
+      "label": 0,
+      "source": "darpa",
+      "apt": null,
+      "variant": null
+    },
+    {
+      "sample_id": "darpa_ben_028",
+      "label": 0,
+      "source": "darpa",
+      "apt": null,
+      "variant": null
+    },
+    {
+      "sample_id": "darpa_ben_029",
+      "label": 0,
+      "source": "darpa",
+      "apt": null,
+      "variant": null
+    },
+    {
+      "sample_id": "APT29_aligned__camo0.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "APT29",
+      "variant": "aligned"
+    },
+    {
+      "sample_id": "APT29_aligned__camo3.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "APT29",
+      "variant": "aligned"
+    },
+    {
+      "sample_id": "APT29_aligned__camo5.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "APT29",
+      "variant": "aligned"
+    },
+    {
+      "sample_id": "APT29_aligned__camo7.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "APT29",
+      "variant": "aligned"
+    },
+    {
+      "sample_id": "APT29_composite__camo0.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "APT29",
+      "variant": "composite"
+    },
+    {
+      "sample_id": "APT29_composite__camo3.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "APT29",
+      "variant": "composite"
+    },
+    {
+      "sample_id": "APT29_composite__camo5.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "APT29",
+      "variant": "composite"
+    },
+    {
+      "sample_id": "APT29_composite__camo7.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "APT29",
+      "variant": "composite"
+    },
+    {
+      "sample_id": "APT29_evolved__camo0.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "APT29",
+      "variant": "evolved"
+    },
+    {
+      "sample_id": "APT29_evolved__camo3.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "APT29",
+      "variant": "evolved"
+    },
+    {
+      "sample_id": "APT29_evolved__camo5.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "APT29",
+      "variant": "evolved"
+    },
+    {
+      "sample_id": "APT29_evolved__camo7.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "APT29",
+      "variant": "evolved"
+    },
+    {
+      "sample_id": "APT33_aligned__camo0.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "APT33",
+      "variant": "aligned"
+    },
+    {
+      "sample_id": "APT33_aligned__camo3.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "APT33",
+      "variant": "aligned"
+    },
+    {
+      "sample_id": "APT33_aligned__camo5.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "APT33",
+      "variant": "aligned"
+    },
+    {
+      "sample_id": "APT33_aligned__camo7.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "APT33",
+      "variant": "aligned"
+    },
+    {
+      "sample_id": "APT33_composite__camo0.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "APT33",
+      "variant": "composite"
+    },
+    {
+      "sample_id": "APT33_composite__camo3.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "APT33",
+      "variant": "composite"
+    },
+    {
+      "sample_id": "APT33_composite__camo5.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "APT33",
+      "variant": "composite"
+    },
+    {
+      "sample_id": "APT33_composite__camo7.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "APT33",
+      "variant": "composite"
+    },
+    {
+      "sample_id": "APT33_evolved__camo0.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "APT33",
+      "variant": "evolved"
+    },
+    {
+      "sample_id": "APT33_evolved__camo3.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "APT33",
+      "variant": "evolved"
+    },
+    {
+      "sample_id": "APT33_evolved__camo5.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "APT33",
+      "variant": "evolved"
+    },
+    {
+      "sample_id": "APT33_evolved__camo7.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "APT33",
+      "variant": "evolved"
+    },
+    {
+      "sample_id": "Lazarus_aligned__camo0.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "Lazarus",
+      "variant": "aligned"
+    },
+    {
+      "sample_id": "Lazarus_aligned__camo3.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "Lazarus",
+      "variant": "aligned"
+    },
+    {
+      "sample_id": "Lazarus_aligned__camo5.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "Lazarus",
+      "variant": "aligned"
+    },
+    {
+      "sample_id": "Lazarus_aligned__camo7.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "Lazarus",
+      "variant": "aligned"
+    },
+    {
+      "sample_id": "Lazarus_composite__camo0.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "Lazarus",
+      "variant": "composite"
+    },
+    {
+      "sample_id": "Lazarus_composite__camo3.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "Lazarus",
+      "variant": "composite"
+    },
+    {
+      "sample_id": "Lazarus_composite__camo5.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "Lazarus",
+      "variant": "composite"
+    },
+    {
+      "sample_id": "Lazarus_composite__camo7.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "Lazarus",
+      "variant": "composite"
+    },
+    {
+      "sample_id": "Lazarus_evolved__camo0.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "Lazarus",
+      "variant": "evolved"
+    },
+    {
+      "sample_id": "Lazarus_evolved__camo3.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "Lazarus",
+      "variant": "evolved"
+    },
+    {
+      "sample_id": "Lazarus_evolved__camo5.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "Lazarus",
+      "variant": "evolved"
+    },
+    {
+      "sample_id": "Lazarus_evolved__camo7.0",
+      "label": 1,
+      "source": "apt_variant",
+      "apt": "Lazarus",
+      "variant": "evolved"
+    }
+  ],
+  "heldout_apts": [
+    "APT29",
+    "APT33",
+    "Lazarus"
+  ],
+  "camo_ratios": [
+    0.0,
+    3.0,
+    5.0,
+    7.0
+  ]
+}

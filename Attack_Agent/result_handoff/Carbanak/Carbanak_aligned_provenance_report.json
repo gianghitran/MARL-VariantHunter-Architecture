@@ -1,23 +1,23 @@
 {
   "apt": "Carbanak",
   "variant_type": "aligned",
-  "dot_path": "D:\\notebook_UITNam3\\Nam3_ki2\\dacn\\TAGAPT\\TAGAPT_APTDetection\\Attack_Agent\\result_handoff\\Carbanak/Carbanak_aligned_provenance.dot",
+  "dot_path": "/home/tmkhiem/nmuggle/LLM-ProvenanceGraph_APTDetection/Attack_Agent/result_handoff/Carbanak/Carbanak_aligned_provenance.dot",
   "quality_valid": true,
   "stats": {
-    "nodes": 55,
-    "edges": 74,
+    "nodes": 52,
+    "edges": 70,
     "clusters": 5
   },
   "reward": {
-    "total": 0.802610083236297,
+    "total": 0.8026100824167332,
     "coverage": 0.5,
     "connectivity": 1.0,
     "validity": 1.0,
     "novelty": 0.5,
     "chain_depth": 1.0,
-    "transition_quality": 0.5261008323629697,
+    "transition_quality": 0.5261008241673311,
     "cluster_validity": 1.0,
-    "macro_reward": 0.5341352913270394,
+    "macro_reward": 0.5341352884585658,
     "micro_reward": 1.0
   },
   "planner_meta": {
@@ -28,8 +28,8 @@
         {
           "source": "T1588.002",
           "target": "T1078",
-          "score": 0.4614523878097534,
-          "gnn_score": 0.7101407051086426,
+          "score": 0.46145235502719884,
+          "gnn_score": 0.7101406455039978,
           "scf_score": 0.1575,
           "kept": false,
           "bridge_hint": "socket"
@@ -95,8 +95,8 @@
       "next_transition": {
         "source": "T1588.002",
         "target": "T1078",
-        "score": 0.4614523878097534,
-        "gnn_score": 0.7101407051086426,
+        "score": 0.46145235502719884,
+        "gnn_score": 0.7101406455039978,
         "scf_score": 0.1575,
         "kept": false,
         "bridge_hint": "socket"

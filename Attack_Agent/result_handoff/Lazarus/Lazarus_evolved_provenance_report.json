@@ -1,24 +1,24 @@
 {
   "apt": "Lazarus",
   "variant_type": "evolved",
-  "dot_path": "D:\\notebook_UITNam3\\Nam3_ki2\\dacn\\TAGAPT\\TAGAPT_APTDetection\\Attack_Agent\\result_handoff\\Lazarus/Lazarus_evolved_provenance.dot",
+  "dot_path": "/home/tmkhiem/nmuggle/LLM-ProvenanceGraph_APTDetection/Attack_Agent/result_handoff/Lazarus/Lazarus_evolved_provenance.dot",
   "quality_valid": true,
   "stats": {
-    "nodes": 43,
-    "edges": 58,
+    "nodes": 44,
+    "edges": 59,
     "clusters": 4
   },
   "reward": {
-    "total": 0.8082510252346595,
+    "total": 0.7878934883728292,
     "coverage": 0.5,
     "connectivity": 1.0,
     "validity": 1.0,
     "novelty": 0.5,
-    "chain_depth": 1.0,
-    "transition_quality": 0.5825102523465951,
+    "chain_depth": 0.7777777777777778,
+    "transition_quality": 0.6011571059505144,
     "cluster_validity": 1.0,
-    "macro_reward": 0.5538785883213083,
-    "micro_reward": 1.0
+    "macro_reward": 0.56040498708268,
+    "micro_reward": 0.9555555555555555
   },
   "planner_meta": {
     "variant_type": "evolved",
@@ -26,39 +26,39 @@
     "pruning": {
       "transitions": [
         {
-          "source": "T1589.002",
+          "source": "T1598.001",
           "target": "T1053",
-          "score": 0.46112826669216156,
+          "score": 0.4571907666921616,
           "gnn_score": 0.7095513939857483,
-          "scf_score": 0.1575,
+          "scf_score": 0.14875,
           "kept": false,
           "bridge_hint": "socket"
         },
         {
           "source": "T1053",
-          "target": "T1037",
-          "score": 0.6877137621343136,
-          "gnn_score": 0.5402751564979553,
-          "scf_score": 0.8679165023565293,
+          "target": "T1098",
+          "score": 0.6641767443060875,
+          "gnn_score": 0.5408664345741272,
+          "scf_score": 0.8148893450895947,
           "kept": false,
           "bridge_hint": "file"
         },
         {
-          "source": "T1037",
+          "source": "T1098",
           "target": "T1046",
-          "score": 0.5986887282133102,
+          "score": 0.6821038068532944,
           "gnn_score": null,
-          "scf_score": 0.5986887282133102,
+          "scf_score": 0.6821038068532944,
           "kept": false,
           "bridge_hint": "socket"
         }
       ],
       "removed": [
         {
-          "technique_id": "T1195",
+          "technique_id": "T1566.002",
           "reason": "weak transition and stronger/equal bypass",
           "incoming_score": 0.16799999999999998,
-          "bypass_score": 0.46112826669216156
+          "bypass_score": 0.4571907666921616
         }
       ]
     },
@@ -66,12 +66,12 @@
   },
   "kill_chain": [
     {
-      "technique_id": "T1589.002",
-      "technique_name": "Email Addresses",
+      "technique_id": "T1598.001",
+      "technique_name": "Spearphishing Service",
       "tactic": "reconnaissance",
       "context": {
-        "technique_id": "T1589.002",
-        "name": "Email Addresses",
+        "technique_id": "T1598.001",
+        "name": "Spearphishing Service",
         "tactics": [
           "reconnaissance"
         ],
@@ -84,7 +84,6 @@
         "capabilities": [
           "credential",
           "discovery",
-          "file",
           "network"
         ],
         "requires_network": true,
@@ -92,11 +91,11 @@
         "produces_access": true
       },
       "next_transition": {
-        "source": "T1589.002",
+        "source": "T1598.001",
         "target": "T1053",
-        "score": 0.46112826669216156,
+        "score": 0.4571907666921616,
         "gnn_score": 0.7095513939857483,
-        "scf_score": 0.1575,
+        "scf_score": 0.14875,
         "kept": false,
         "bridge_hint": "socket"
       }
@@ -138,30 +137,35 @@
       },
       "next_transition": {
         "source": "T1053",
-        "target": "T1037",
-        "score": 0.6877137621343136,
-        "gnn_score": 0.5402751564979553,
-        "scf_score": 0.8679165023565293,
+        "target": "T1098",
+        "score": 0.6641767443060875,
+        "gnn_score": 0.5408664345741272,
+        "scf_score": 0.8148893450895947,
         "kept": false,
         "bridge_hint": "file"
       }
     },
     {
-      "technique_id": "T1037",
-      "technique_name": "Boot or Logon Initialization Scripts",
+      "technique_id": "T1098",
+      "technique_name": "Account Manipulation",
       "tactic": "persistence",
       "context": {
-        "technique_id": "T1037",
-        "name": "Boot or Logon Initialization Scripts",
+        "technique_id": "T1098",
+        "name": "Account Manipulation",
         "tactics": [
           "persistence",
           "privilege-escalation"
         ],
         "platforms": [
+          "containers",
           "esxi",
+          "iaas",
+          "identity-provider",
           "linux",
           "macos",
           "network",
+          "office-suite",
+          "saas",
           "windows"
         ],
         "privilege_score": 0.0,
@@ -171,21 +175,20 @@
           "credential",
           "execution",
           "file",
-          "network",
           "persistence",
           "privilege",
           "process"
         ],
-        "requires_network": true,
+        "requires_network": false,
         "requires_execution": true,
         "produces_access": true
       },
       "next_transition": {
-        "source": "T1037",
+        "source": "T1098",
         "target": "T1046",
-        "score": 0.5986887282133102,
+        "score": 0.6821038068532944,
         "gnn_score": null,
-        "scf_score": 0.5986887282133102,
+        "scf_score": 0.6821038068532944,
         "kept": false,
         "bridge_hint": "socket"
       }
@@ -225,7 +228,7 @@
   ],
   "cluster_reports": [
     {
-      "technique_id": "T1589.002",
+      "technique_id": "T1598.001",
       "tactic": "reconnaissance",
       "valid": true,
       "issues": [],
@@ -256,7 +259,7 @@
       ]
     },
     {
-      "technique_id": "T1037",
+      "technique_id": "T1098",
       "tactic": "persistence",
       "valid": true,
       "issues": [],

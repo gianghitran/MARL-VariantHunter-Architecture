@@ -1,0 +1,7 @@
+Nodes: 52
+Edges: 70
+Unique labels: 40
+Tactics: ['execution', 'initial-access', 'persistence', 'resource-development', 'stealth']
+Edge types: {'FR': 10, 'WF': 23, 'EX': 5, 'ST': 2, 'RF': 28, 'RCV': 2}
+Semantic violations: 0
+Issues: []

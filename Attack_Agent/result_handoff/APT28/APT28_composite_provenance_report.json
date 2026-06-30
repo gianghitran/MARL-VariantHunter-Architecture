@@ -1,11 +1,11 @@
 {
   "apt": "APT28",
   "variant_type": "composite",
-  "dot_path": "D:\\notebook_UITNam3\\Nam3_ki2\\dacn\\TAGAPT\\TAGAPT_APTDetection\\Attack_Agent\\result_handoff\\APT28/APT28_composite_provenance.dot",
+  "dot_path": "/home/tmkhiem/nmuggle/LLM-ProvenanceGraph_APTDetection/Attack_Agent/result_handoff/APT28/APT28_composite_provenance.dot",
   "quality_valid": true,
   "stats": {
-    "nodes": 57,
-    "edges": 76,
+    "nodes": 55,
+    "edges": 74,
     "clusters": 5
   },
   "reward": {

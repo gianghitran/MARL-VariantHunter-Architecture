@@ -1,11 +1,11 @@
 {
   "apt": "FIN7",
   "variant_type": "aligned",
-  "dot_path": "D:\\notebook_UITNam3\\Nam3_ki2\\dacn\\TAGAPT\\TAGAPT_APTDetection\\Attack_Agent\\result_handoff\\FIN7/FIN7_aligned_provenance.dot",
+  "dot_path": "/home/tmkhiem/nmuggle/LLM-ProvenanceGraph_APTDetection/Attack_Agent/result_handoff/FIN7/FIN7_aligned_provenance.dot",
   "quality_valid": true,
   "stats": {
-    "nodes": 42,
-    "edges": 56,
+    "nodes": 40,
+    "edges": 54,
     "clusters": 4
   },
   "reward": {

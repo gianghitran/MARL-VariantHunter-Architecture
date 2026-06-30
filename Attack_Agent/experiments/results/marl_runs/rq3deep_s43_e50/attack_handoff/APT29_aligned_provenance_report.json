@@ -1,0 +1,296 @@
+{
+  "apt": "APT29",
+  "variant_type": "aligned",
+  "dot_path": "experiments/results/marl_runs/rq3deep_s43_e50/attack_handoff/APT29_aligned_provenance.dot",
+  "quality_valid": true,
+  "stats": {
+    "nodes": 52,
+    "edges": 70,
+    "clusters": 4
+  },
+  "reward": {
+    "total": 0.77097238702529,
+    "coverage": 0.3333333333333333,
+    "connectivity": 1.0,
+    "validity": 1.0,
+    "novelty": 0.5,
+    "chain_depth": 0.9333333333333332,
+    "transition_quality": 0.693057203586234,
+    "cluster_validity": 1.0,
+    "macro_reward": 0.5175700212551819,
+    "micro_reward": 0.9866666666666666
+  },
+  "planner_meta": {
+    "variant_type": "aligned",
+    "composite_replacements": [],
+    "pruning": {
+      "transitions": [
+        {
+          "source": "T1595.002",
+          "target": "T1133",
+          "score": 0.45591668963432314,
+          "gnn_score": 0.7062121629714966,
+          "scf_score": 0.15,
+          "kept": false,
+          "bridge_hint": "socket"
+        },
+        {
+          "source": "T1133",
+          "target": "T1078.003",
+          "score": 0.844583169023196,
+          "gnn_score": null,
+          "scf_score": 0.844583169023196,
+          "kept": true,
+          "bridge_hint": "socket"
+        },
+        {
+          "source": "T1078.003",
+          "target": "T1053",
+          "score": 0.778671752101183,
+          "gnn_score": 0.7066076993942261,
+          "scf_score": 0.8667500387430191,
+          "kept": false,
+          "bridge_hint": "socket"
+        }
+      ],
+      "removed": [
+        {
+          "technique_id": "T1588.002",
+          "reason": "weak transition and stronger/equal bypass",
+          "incoming_score": 0.21,
+          "bypass_score": 0.45591668963432314
+        }
+      ]
+    },
+    "threshold": 0.8
+  },
+  "kill_chain": [
+    {
+      "technique_id": "T1595.002",
+      "technique_name": "Vulnerability Scanning",
+      "tactic": "reconnaissance",
+      "context": {
+        "technique_id": "T1595.002",
+        "name": "Vulnerability Scanning",
+        "tactics": [
+          "reconnaissance"
+        ],
+        "platforms": [
+          "pre"
+        ],
+        "privilege_score": 0.0,
+        "impact": false,
+        "data_sources": [],
+        "capabilities": [
+          "discovery",
+          "network"
+        ],
+        "requires_network": true,
+        "requires_execution": false,
+        "produces_access": false
+      },
+      "next_transition": {
+        "source": "T1595.002",
+        "target": "T1133",
+        "score": 0.45591668963432314,
+        "gnn_score": 0.7062121629714966,
+        "scf_score": 0.15,
+        "kept": false,
+        "bridge_hint": "socket"
+      }
+    },
+    {
+      "technique_id": "T1133",
+      "technique_name": "External Remote Services",
+      "tactic": "persistence",
+      "context": {
+        "technique_id": "T1133",
+        "name": "External Remote Services",
+        "tactics": [
+          "persistence",
+          "initial-access"
+        ],
+        "platforms": [
+          "containers",
+          "linux",
+          "macos",
+          "windows"
+        ],
+        "privilege_score": 0.0,
+        "impact": false,
+        "data_sources": [],
+        "capabilities": [
+          "credential",
+          "execution",
+          "file",
+          "network",
+          "persistence",
+          "process"
+        ],
+        "requires_network": true,
+        "requires_execution": true,
+        "produces_access": true
+      },
+      "next_transition": {
+        "source": "T1133",
+        "target": "T1078.003",
+        "score": 0.844583169023196,
+        "gnn_score": null,
+        "scf_score": 0.844583169023196,
+        "kept": true,
+        "bridge_hint": "socket"
+      }
+    },
+    {
+      "technique_id": "T1078.003",
+      "technique_name": "Local Accounts",
+      "tactic": "stealth",
+      "context": {
+        "technique_id": "T1078.003",
+        "name": "Local Accounts",
+        "tactics": [
+          "stealth",
+          "persistence",
+          "privilege-escalation",
+          "initial-access"
+        ],
+        "platforms": [
+          "containers",
+          "esxi",
+          "linux",
+          "macos",
+          "network",
+          "windows"
+        ],
+        "privilege_score": 0.0,
+        "impact": false,
+        "data_sources": [],
+        "capabilities": [
+          "credential",
+          "execution",
+          "file",
+          "network",
+          "persistence",
+          "privilege",
+          "process"
+        ],
+        "requires_network": true,
+        "requires_execution": true,
+        "produces_access": true
+      },
+      "next_transition": {
+        "source": "T1078.003",
+        "target": "T1053",
+        "score": 0.778671752101183,
+        "gnn_score": 0.7066076993942261,
+        "scf_score": 0.8667500387430191,
+        "kept": false,
+        "bridge_hint": "socket"
+      }
+    },
+    {
+      "technique_id": "T1053",
+      "technique_name": "Scheduled Task/Job",
+      "tactic": "execution",
+      "context": {
+        "technique_id": "T1053",
+        "name": "Scheduled Task/Job",
+        "tactics": [
+          "execution",
+          "persistence",
+          "privilege-escalation"
+        ],
+        "platforms": [
+          "containers",
+          "esxi",
+          "linux",
+          "macos",
+          "network",
+          "windows"
+        ],
+        "privilege_score": 0.0,
+        "impact": false,
+        "data_sources": [],
+        "capabilities": [
+          "execution",
+          "file",
+          "network",
+          "persistence",
+          "privilege",
+          "process"
+        ],
+        "requires_network": true,
+        "requires_execution": true,
+        "produces_access": true
+      },
+      "next_transition": null
+    }
+  ],
+  "cluster_reports": [
+    {
+      "technique_id": "T1595.002",
+      "tactic": "reconnaissance",
+      "valid": true,
+      "issues": [],
+      "edge_types": [
+        "FR",
+        "RCV",
+        "RF",
+        "ST",
+        "WF"
+      ],
+      "node_types": [
+        "file",
+        "process",
+        "socket"
+      ]
+    },
+    {
+      "technique_id": "T1133",
+      "tactic": "persistence",
+      "valid": true,
+      "issues": [],
+      "edge_types": [
+        "EX",
+        "FR",
+        "RF",
+        "WF"
+      ],
+      "node_types": [
+        "file",
+        "process"
+      ]
+    },
+    {
+      "technique_id": "T1078.003",
+      "tactic": "stealth",
+      "valid": true,
+      "issues": [],
+      "edge_types": [
+        "EX",
+        "FR",
+        "RF",
+        "WF"
+      ],
+      "node_types": [
+        "file",
+        "process"
+      ]
+    },
+    {
+      "technique_id": "T1053",
+      "tactic": "execution",
+      "valid": true,
+      "issues": [],
+      "edge_types": [
+        "FR",
+        "RF",
+        "WF"
+      ],
+      "node_types": [
+        "file",
+        "process"
+      ]
+    }
+  ]
+}

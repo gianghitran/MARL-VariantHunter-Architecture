@@ -1,0 +1,18 @@
+digraph {
+  p0_s3 [label="cron" type=process stage="T1053.002"]
+  fin0_s3 [label="timer_6b.d" type=file stage="T1053.002"]
+  p1_s3 [label="systemd" type=process stage="T1053.002"]
+  f0_0_s3 [label="backdoor_fb.service" type=file stage="T1053.002"]
+  p2_s3 [label="bash" type=process stage="T1053.002"]
+  f1_0_s3 [label="run_49.sh" type=file stage="T1053.002"]
+  fh0_s3 [label="agent_50.service" type=file stage="T1053.002"]
+  fin0_s3 -> p0_s3 [label="RF"]
+  p0_s3 -> p1_s3 [label="FR"]
+  p1_s3 -> f0_0_s3 [label="WF"]
+  p0_s3 -> p2_s3 [label="FR"]
+  p2_s3 -> f1_0_s3 [label="WF"]
+  f0_0_s3 -> p2_s3 [label="RF"]
+  p0_s3 -> fh0_s3 [label="WF"]
+  fh0_s3 -> p1_s3 [label="RF"]
+  fh0_s3 -> p2_s3 [label="RF"]
+}

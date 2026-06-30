@@ -1,0 +1,7 @@
+Nodes: 44
+Edges: 60
+Unique labels: 41
+Tactics: ['discovery', 'execution', 'persistence', 'reconnaissance']
+Edge types: {'FR': 9, 'WF': 21, 'ST': 4, 'RF': 21, 'RCV': 4, 'EX': 1}
+Semantic violations: 0
+Issues: []

@@ -1,11 +1,11 @@
 {
   "apt": "APT38",
   "variant_type": "composite",
-  "dot_path": "D:\\notebook_UITNam3\\Nam3_ki2\\dacn\\TAGAPT\\TAGAPT_APTDetection\\Attack_Agent\\result_handoff\\APT38/APT38_composite_provenance.dot",
+  "dot_path": "/home/tmkhiem/nmuggle/LLM-ProvenanceGraph_APTDetection/Attack_Agent/result_handoff/APT38/APT38_composite_provenance.dot",
   "quality_valid": true,
   "stats": {
-    "nodes": 57,
-    "edges": 77,
+    "nodes": 54,
+    "edges": 73,
     "clusters": 5
   },
   "reward": {

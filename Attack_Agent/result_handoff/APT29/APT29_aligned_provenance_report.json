@@ -1,11 +1,11 @@
 {
   "apt": "APT29",
   "variant_type": "aligned",
-  "dot_path": "D:\\notebook_UITNam3\\Nam3_ki2\\dacn\\TAGAPT\\TAGAPT_APTDetection\\Attack_Agent\\result_handoff\\APT29/APT29_aligned_provenance.dot",
+  "dot_path": "/home/tmkhiem/nmuggle/LLM-ProvenanceGraph_APTDetection/Attack_Agent/result_handoff/APT29/APT29_aligned_provenance.dot",
   "quality_valid": true,
   "stats": {
-    "nodes": 44,
-    "edges": 58,
+    "nodes": 45,
+    "edges": 61,
     "clusters": 4
   },
   "reward": {

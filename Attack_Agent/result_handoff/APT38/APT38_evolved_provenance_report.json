@@ -1,11 +1,11 @@
 {
   "apt": "APT38",
   "variant_type": "evolved",
-  "dot_path": "D:\\notebook_UITNam3\\Nam3_ki2\\dacn\\TAGAPT\\TAGAPT_APTDetection\\Attack_Agent\\result_handoff\\APT38/APT38_evolved_provenance.dot",
+  "dot_path": "/home/tmkhiem/nmuggle/LLM-ProvenanceGraph_APTDetection/Attack_Agent/result_handoff/APT38/APT38_evolved_provenance.dot",
   "quality_valid": true,
   "stats": {
     "nodes": 56,
-    "edges": 76,
+    "edges": 74,
     "clusters": 5
   },
   "reward": {
@@ -27,7 +27,7 @@
       "transitions": [
         {
           "source": "T1588.002",
-          "target": "T1195.002",
+          "target": "T1200",
           "score": 0.175,
           "gnn_score": null,
           "scf_score": 0.175,
@@ -35,7 +35,7 @@
           "bridge_hint": "socket"
         },
         {
-          "source": "T1195.002",
+          "source": "T1200",
           "target": "T1059.003",
           "score": 0.4456430332859357,
           "gnn_score": null,
@@ -94,7 +94,7 @@
       },
       "next_transition": {
         "source": "T1588.002",
-        "target": "T1195.002",
+        "target": "T1200",
         "score": 0.175,
         "gnn_score": null,
         "scf_score": 0.175,
@@ -103,12 +103,12 @@
       }
     },
     {
-      "technique_id": "T1195.002",
-      "technique_name": "Compromise Software Supply Chain",
+      "technique_id": "T1200",
+      "technique_name": "Hardware Additions",
       "tactic": "initial-access",
       "context": {
-        "technique_id": "T1195.002",
-        "name": "Compromise Software Supply Chain",
+        "technique_id": "T1200",
+        "name": "Hardware Additions",
         "tactics": [
           "initial-access"
         ],
@@ -130,7 +130,7 @@
         "produces_access": false
       },
       "next_transition": {
-        "source": "T1195.002",
+        "source": "T1200",
         "target": "T1059.003",
         "score": 0.4456430332859357,
         "gnn_score": null,
@@ -261,7 +261,7 @@
       ]
     },
     {
-      "technique_id": "T1195.002",
+      "technique_id": "T1200",
       "tactic": "initial-access",
       "valid": true,
       "issues": [],

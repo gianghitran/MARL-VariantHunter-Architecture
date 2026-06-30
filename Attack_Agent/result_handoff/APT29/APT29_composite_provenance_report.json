@@ -1,24 +1,24 @@
 {
   "apt": "APT29",
   "variant_type": "composite",
-  "dot_path": "D:\\notebook_UITNam3\\Nam3_ki2\\dacn\\TAGAPT\\TAGAPT_APTDetection\\Attack_Agent\\result_handoff\\APT29/APT29_composite_provenance.dot",
+  "dot_path": "/home/tmkhiem/nmuggle/LLM-ProvenanceGraph_APTDetection/Attack_Agent/result_handoff/APT29/APT29_composite_provenance.dot",
   "quality_valid": true,
   "stats": {
-    "nodes": 42,
-    "edges": 57,
+    "nodes": 50,
+    "edges": 66,
     "clusters": 4
   },
   "reward": {
-    "total": 0.7777890536919567,
+    "total": 0.7694557203586234,
     "coverage": 0.3333333333333333,
     "connectivity": 1.0,
     "validity": 1.0,
     "novelty": 0.5,
-    "chain_depth": 1.0,
+    "chain_depth": 0.9166666666666666,
     "transition_quality": 0.6945572035862341,
     "cluster_validity": 1.0,
     "macro_reward": 0.5180950212551819,
-    "micro_reward": 1.0
+    "micro_reward": 0.9833333333333334
   },
   "planner_meta": {
     "variant_type": "composite",

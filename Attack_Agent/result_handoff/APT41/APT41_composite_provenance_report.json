@@ -1,11 +1,11 @@
 {
   "apt": "APT41",
   "variant_type": "composite",
-  "dot_path": "D:\\notebook_UITNam3\\Nam3_ki2\\dacn\\TAGAPT\\TAGAPT_APTDetection\\Attack_Agent\\result_handoff\\APT41/APT41_composite_provenance.dot",
+  "dot_path": "/home/tmkhiem/nmuggle/LLM-ProvenanceGraph_APTDetection/Attack_Agent/result_handoff/APT41/APT41_composite_provenance.dot",
   "quality_valid": false,
   "stats": {
-    "nodes": 45,
-    "edges": 60,
+    "nodes": 43,
+    "edges": 57,
     "clusters": 4
   },
   "reward": {

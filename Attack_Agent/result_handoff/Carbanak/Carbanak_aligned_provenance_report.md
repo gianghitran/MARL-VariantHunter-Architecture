@@ -1,9 +1,9 @@
 # Carbanak aligned provenance report
 
-- DOT: `D:\notebook_UITNam3\Nam3_ki2\dacn\TAGAPT\TAGAPT_APTDetection\Attack_Agent\result_handoff\Carbanak/Carbanak_aligned_provenance.dot`
+- DOT: `/home/tmkhiem/nmuggle/LLM-ProvenanceGraph_APTDetection/Attack_Agent/result_handoff/Carbanak/Carbanak_aligned_provenance.dot`
 - Quality valid: `True`
-- Nodes: `55`
-- Edges: `74`
+- Nodes: `52`
+- Edges: `70`
 - Clusters: `5`
 - Total reward: `0.8026`
 - Transition quality: `0.5261`

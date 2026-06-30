@@ -1,3 +1,5 @@
+# [DEPRECATED] Train MLP cũ trên UNICORN. Pipeline hiện dùng DARPA TC E3 — pretrain
+# GAT+MLP qua: python Benign_Agent/pretrain_on_generated.py (PRETRAIN_SOURCE=darpa).
 import sys
 import random
 import os
@@ -22,7 +24,7 @@ torch.set_default_dtype(torch.float32)
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 def train_mlp():
-    w2v_model_path = os.path.join(BASE_DIR, "trained_weights", "unicorn", "unicorn.model")
+    w2v_model_path = os.path.join(BASE_DIR, "trained_weights", "darpa", "w2v.model")
     encoder = PositionalEncoder(30)
     try:
         w2vmodel = Word2Vec.load(w2v_model_path)
@@ -70,7 +72,7 @@ def train_mlp():
         oversampled = random.choices(attack_graphs, k=num_to_duplicate)
         dataset_graphs.extend(oversampled)
         
-    gat_model_path = os.path.join(BASE_DIR, "trained_weights", "unicorn", "unicorn0_gat.pth")
+    gat_model_path = os.path.join(BASE_DIR, "trained_weights", "darpa", "gat.pth")
     if os.path.exists(gat_model_path):
         gat.load_state_dict(torch.load(gat_model_path, map_location=device))
         print(f"Loaded pre-trained GAT from {gat_model_path}")
@@ -99,7 +101,14 @@ def train_mlp():
     for epoch in range(epochs):
         gat.train()
         mlp.train()
-        
+        # BN-FREEZE: giu BatchNorm cua GAT o eval mode khi train. Inference (env)
+        # dung gat.eval() -> BN dung running stats; neu train voi BN train-mode
+        # (per-batch stats) thi MLP hoc tren latent KHAC voi luc eval -> eval-mode
+        # du doan toan benign (conf ~0.02 moi graph). Freeze BN -> train/eval khop.
+        for _m in gat.modules():
+            if isinstance(_m, torch.nn.BatchNorm1d):
+                _m.eval()
+
         epoch_loss = 0.0
         correct = 0
         total = 0
@@ -144,8 +153,8 @@ def train_mlp():
             break
             
     # Save weights
-    mlp_save_path = os.path.join(BASE_DIR, "trained_weights", "unicorn", "mlp.pth")
-    gat_save_path = os.path.join(BASE_DIR, "trained_weights", "unicorn", "unicorn0_gat.pth")
+    mlp_save_path = os.path.join(BASE_DIR, "trained_weights", "darpa", "mlp.pth")
+    gat_save_path = os.path.join(BASE_DIR, "trained_weights", "darpa", "gat.pth")
     os.makedirs(os.path.dirname(mlp_save_path), exist_ok=True)
     
     torch.save(mlp.state_dict(), mlp_save_path)

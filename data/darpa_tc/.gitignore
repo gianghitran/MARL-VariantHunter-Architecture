@@ -1,0 +1,5 @@
+# Không commit dữ liệu DARPA TC thô (~GB) và cache parse — chỉ giữ script + doc
+*
+!.gitignore
+!README.md
+!download_darpa.py

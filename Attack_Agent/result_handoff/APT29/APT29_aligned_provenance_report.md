@@ -1,9 +1,9 @@
 # APT29 aligned provenance report
 
-- DOT: `D:\notebook_UITNam3\Nam3_ki2\dacn\TAGAPT\TAGAPT_APTDetection\Attack_Agent\result_handoff\APT29/APT29_aligned_provenance.dot`
+- DOT: `/home/tmkhiem/nmuggle/LLM-ProvenanceGraph_APTDetection/Attack_Agent/result_handoff/APT29/APT29_aligned_provenance.dot`
 - Quality valid: `True`
-- Nodes: `44`
-- Edges: `58`
+- Nodes: `45`
+- Edges: `61`
 - Clusters: `4`
 - Total reward: `0.7776`
 - Transition quality: `0.6931`

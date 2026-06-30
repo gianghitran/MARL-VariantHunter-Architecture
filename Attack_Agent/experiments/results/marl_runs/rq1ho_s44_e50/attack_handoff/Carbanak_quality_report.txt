@@ -1,0 +1,7 @@
+Nodes: 47
+Edges: 62
+Unique labels: 38
+Tactics: ['discovery', 'execution', 'lateral-movement', 'resource-development']
+Edge types: {'FR': 8, 'WF': 21, 'EX': 4, 'ST': 3, 'RF': 23, 'RCV': 3}
+Semantic violations: 0
+Issues: []

@@ -1,3 +1,6 @@
+# [DEPRECATED] Pretrain GAT cũ trên UNICORN thô (token hash). Pipeline hiện dùng
+# DARPA TC E3 — pretrain qua: python Benign_Agent/pretrain_on_generated.py
+# (PRETRAIN_SOURCE=darpa). Giữ file này chỉ để tham khảo lịch sử.
 import sys
 import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
@@ -17,7 +20,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 
 def pretrain_gat():
-    w2v_model_path = os.path.join(BASE_DIR, "trained_weights", "unicorn", "unicorn.model")
+    w2v_model_path = os.path.join(BASE_DIR, "trained_weights", "darpa", "w2v.model")
     encoder = PositionalEncoder(30)
     try:
         w2vmodel = Word2Vec.load(w2v_model_path)
@@ -73,7 +76,7 @@ def pretrain_gat():
             
         print(f"Epoch {epoch+1}/{epochs} | Loss: {total_loss/len(dataset):.4f}")
             
-    gat_model_path = os.path.join(BASE_DIR, "trained_weights", "unicorn", "unicorn0_gat.pth")
+    gat_model_path = os.path.join(BASE_DIR, "trained_weights", "darpa", "gat.pth")
     torch.save(gat.state_dict(), gat_model_path)
     print(f"Saved Pre-trained GAT to {gat_model_path}")
 

@@ -1,0 +1,298 @@
+{
+  "apt": "APT41",
+  "variant_type": "evolved",
+  "dot_path": "experiments/results/marl_runs/rq1ho_s44_e50/attack_handoff/APT41_evolved_provenance.dot",
+  "quality_valid": true,
+  "stats": {
+    "nodes": 51,
+    "edges": 67,
+    "clusters": 4
+  },
+  "reward": {
+    "total": 0.6745498896294171,
+    "coverage": 0.0,
+    "connectivity": 1.0,
+    "validity": 1.0,
+    "novelty": 0.5,
+    "chain_depth": 0.9666666666666667,
+    "transition_quality": 0.5288322296275033,
+    "cluster_validity": 1.0,
+    "macro_reward": 0.31009128036962613,
+    "micro_reward": 0.9933333333333334
+  },
+  "planner_meta": {
+    "variant_type": "evolved",
+    "composite_replacements": [],
+    "pruning": {
+      "transitions": [
+        {
+          "source": "T1595.003",
+          "target": "T1588.002",
+          "score": 0.22166666666666668,
+          "gnn_score": null,
+          "scf_score": 0.22166666666666668,
+          "kept": false,
+          "bridge_hint": "socket"
+        },
+        {
+          "source": "T1588.002",
+          "target": "T1078",
+          "score": 0.46145235502719884,
+          "gnn_score": 0.7101406455039978,
+          "scf_score": 0.1575,
+          "kept": false,
+          "bridge_hint": "socket"
+        },
+        {
+          "source": "T1078",
+          "target": "T1078.003",
+          "score": 0.9033776671886444,
+          "gnn_score": null,
+          "scf_score": 0.9033776671886444,
+          "kept": true,
+          "bridge_hint": "socket"
+        }
+      ],
+      "removed": [
+        {
+          "technique_id": "T1078.001",
+          "reason": "weak transition and stronger/equal bypass",
+          "incoming_score": 0.1575,
+          "bypass_score": 0.46145235502719884
+        }
+      ]
+    },
+    "threshold": 0.8
+  },
+  "kill_chain": [
+    {
+      "technique_id": "T1595.003",
+      "technique_name": "Wordlist Scanning",
+      "tactic": "reconnaissance",
+      "context": {
+        "technique_id": "T1595.003",
+        "name": "Wordlist Scanning",
+        "tactics": [
+          "reconnaissance"
+        ],
+        "platforms": [
+          "pre"
+        ],
+        "privilege_score": 0.0,
+        "impact": false,
+        "data_sources": [],
+        "capabilities": [
+          "credential",
+          "discovery",
+          "file",
+          "network"
+        ],
+        "requires_network": true,
+        "requires_execution": false,
+        "produces_access": true
+      },
+      "next_transition": {
+        "source": "T1595.003",
+        "target": "T1588.002",
+        "score": 0.22166666666666668,
+        "gnn_score": null,
+        "scf_score": 0.22166666666666668,
+        "kept": false,
+        "bridge_hint": "socket"
+      }
+    },
+    {
+      "technique_id": "T1588.002",
+      "technique_name": "Tool",
+      "tactic": "resource-development",
+      "context": {
+        "technique_id": "T1588.002",
+        "name": "Tool",
+        "tactics": [
+          "resource-development"
+        ],
+        "platforms": [
+          "pre"
+        ],
+        "privilege_score": 0.0,
+        "impact": false,
+        "data_sources": [],
+        "capabilities": [
+          "execution",
+          "file",
+          "payload"
+        ],
+        "requires_network": false,
+        "requires_execution": true,
+        "produces_access": false
+      },
+      "next_transition": {
+        "source": "T1588.002",
+        "target": "T1078",
+        "score": 0.46145235502719884,
+        "gnn_score": 0.7101406455039978,
+        "scf_score": 0.1575,
+        "kept": false,
+        "bridge_hint": "socket"
+      }
+    },
+    {
+      "technique_id": "T1078",
+      "technique_name": "Valid Accounts",
+      "tactic": "stealth",
+      "context": {
+        "technique_id": "T1078",
+        "name": "Valid Accounts",
+        "tactics": [
+          "stealth",
+          "persistence",
+          "privilege-escalation",
+          "initial-access"
+        ],
+        "platforms": [
+          "containers",
+          "esxi",
+          "iaas",
+          "identity-provider",
+          "linux",
+          "macos",
+          "network",
+          "office-suite",
+          "saas",
+          "windows"
+        ],
+        "privilege_score": 0.0,
+        "impact": false,
+        "data_sources": [],
+        "capabilities": [
+          "credential",
+          "execution",
+          "file",
+          "network",
+          "persistence",
+          "privilege",
+          "process"
+        ],
+        "requires_network": true,
+        "requires_execution": true,
+        "produces_access": true
+      },
+      "next_transition": {
+        "source": "T1078",
+        "target": "T1078.003",
+        "score": 0.9033776671886444,
+        "gnn_score": null,
+        "scf_score": 0.9033776671886444,
+        "kept": true,
+        "bridge_hint": "socket"
+      }
+    },
+    {
+      "technique_id": "T1078.003",
+      "technique_name": "Local Accounts",
+      "tactic": "stealth",
+      "context": {
+        "technique_id": "T1078.003",
+        "name": "Local Accounts",
+        "tactics": [
+          "stealth",
+          "persistence",
+          "privilege-escalation",
+          "initial-access"
+        ],
+        "platforms": [
+          "containers",
+          "esxi",
+          "linux",
+          "macos",
+          "network",
+          "windows"
+        ],
+        "privilege_score": 0.0,
+        "impact": false,
+        "data_sources": [],
+        "capabilities": [
+          "credential",
+          "execution",
+          "file",
+          "network",
+          "persistence",
+          "privilege",
+          "process"
+        ],
+        "requires_network": true,
+        "requires_execution": true,
+        "produces_access": true
+      },
+      "next_transition": null
+    }
+  ],
+  "cluster_reports": [
+    {
+      "technique_id": "T1595.003",
+      "tactic": "reconnaissance",
+      "valid": true,
+      "issues": [],
+      "edge_types": [
+        "FR",
+        "RCV",
+        "RF",
+        "ST",
+        "WF"
+      ],
+      "node_types": [
+        "file",
+        "process",
+        "socket"
+      ]
+    },
+    {
+      "technique_id": "T1588.002",
+      "tactic": "resource-development",
+      "valid": true,
+      "issues": [],
+      "edge_types": [
+        "EX",
+        "FR",
+        "RF",
+        "WF"
+      ],
+      "node_types": [
+        "file",
+        "process"
+      ]
+    },
+    {
+      "technique_id": "T1078",
+      "tactic": "stealth",
+      "valid": true,
+      "issues": [],
+      "edge_types": [
+        "EX",
+        "FR",
+        "RF",
+        "WF"
+      ],
+      "node_types": [
+        "file",
+        "process"
+      ]
+    },
+    {
+      "technique_id": "T1078.003",
+      "tactic": "stealth",
+      "valid": true,
+      "issues": [],
+      "edge_types": [
+        "EX",
+        "FR",
+        "RF",
+        "WF"
+      ],
+      "node_types": [
+        "file",
+        "process"
+      ]
+    }
+  ]
+}

@@ -1,11 +1,11 @@
 # APT32 aligned provenance report
 
-- DOT: `D:\notebook_UITNam3\Nam3_ki2\dacn\TAGAPT\TAGAPT_APTDetection\Attack_Agent\result_handoff\APT32/APT32_aligned_provenance.dot`
+- DOT: `/home/tmkhiem/nmuggle/LLM-ProvenanceGraph_APTDetection/Attack_Agent/result_handoff/APT32/APT32_aligned_provenance.dot`
 - Quality valid: `True`
-- Nodes: `41`
-- Edges: `56`
+- Nodes: `45`
+- Edges: `60`
 - Clusters: `4`
-- Total reward: `0.7778`
+- Total reward: `0.7750`
 - Transition quality: `0.6946`
 - Cluster validity: `1.0000`
 

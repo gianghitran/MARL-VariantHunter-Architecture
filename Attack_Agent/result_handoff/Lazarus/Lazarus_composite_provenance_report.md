@@ -1,9 +1,9 @@
 # Lazarus composite provenance report
 
-- DOT: `D:\notebook_UITNam3\Nam3_ki2\dacn\TAGAPT\TAGAPT_APTDetection\Attack_Agent\result_handoff\Lazarus/Lazarus_composite_provenance.dot`
+- DOT: `/home/tmkhiem/nmuggle/LLM-ProvenanceGraph_APTDetection/Attack_Agent/result_handoff/Lazarus/Lazarus_composite_provenance.dot`
 - Quality valid: `True`
-- Nodes: `47`
-- Edges: `62`
+- Nodes: `43`
+- Edges: `58`
 - Clusters: `4`
 - Total reward: `0.8009`
 - Transition quality: `0.5085`

@@ -172,11 +172,22 @@ def generate_apt_subgraph(
             'variant':     str
             'is_fallback': bool
     """
+    # EXP_ALLOWED_APTS / EXP_ALLOWED_VARIANTS (experiment harness, vd RQ2 Leave-Variant-Out):
+    # gioi han khong gian APT/variant ma Generation Agent duoc phep sinh. Dinh dang CSV,
+    # vd EXP_ALLOWED_VARIANTS="aligned". Khong dat -> dung full SUPPORTED list nhu cu.
+    _allowed_apts = [a.strip() for a in os.environ.get("EXP_ALLOWED_APTS", "").split(",") if a.strip()]
+    _allowed_vars = [v.strip() for v in os.environ.get("EXP_ALLOWED_VARIANTS", "").split(",") if v.strip()]
+    apt_pool     = [a for a in SUPPORTED_APTS if a in _allowed_apts] if _allowed_apts else list(SUPPORTED_APTS)
+    variant_pool = [v for v in SUPPORTED_VARIANTS if v in _allowed_vars] if _allowed_vars else list(SUPPORTED_VARIANTS)
+    # Neu filter loc het (cau hinh sai) -> fallback ve full list de khong crash
+    apt_pool     = apt_pool or list(SUPPORTED_APTS)
+    variant_pool = variant_pool or list(SUPPORTED_VARIANTS)
+
     # Random APT/variant nếu không chỉ định → tăng diversity mỗi episode
     if apt_name is None:
-        apt_name = random.choice(SUPPORTED_APTS)
+        apt_name = random.choice(apt_pool)
     if variant_type is None:
-        variant_type = random.choice(SUPPORTED_VARIANTS)
+        variant_type = random.choice(variant_pool)
 
     # Default cti_path: relative từ thư mục Attack_Agent
     if cti_path is None:

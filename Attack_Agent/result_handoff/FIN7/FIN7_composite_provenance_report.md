@@ -1,9 +1,9 @@
 # FIN7 composite provenance report
 
-- DOT: `D:\notebook_UITNam3\Nam3_ki2\dacn\TAGAPT\TAGAPT_APTDetection\Attack_Agent\result_handoff\FIN7/FIN7_composite_provenance.dot`
+- DOT: `/home/tmkhiem/nmuggle/LLM-ProvenanceGraph_APTDetection/Attack_Agent/result_handoff/FIN7/FIN7_composite_provenance.dot`
 - Quality valid: `True`
-- Nodes: `50`
-- Edges: `66`
+- Nodes: `41`
+- Edges: `55`
 - Clusters: `4`
 - Total reward: `0.7778`
 - Transition quality: `0.6946`

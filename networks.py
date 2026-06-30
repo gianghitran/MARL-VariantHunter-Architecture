@@ -86,6 +86,14 @@ class GAT(torch.nn.Module):
         # Batch Norm sau conv1 để ổn định training
         self.bn1 = nn.BatchNorm1d(hidden_dim)
 
+        # Top-k attention masking (chống camouflage dilution): pooling CHỈ trên các
+        # node nhận attention cao nhất → loại benign-padding (node ngoại vi attention
+        # thấp do attacker chèn quanh APT). Tấn công gốc camo thay vì soft-weight (vẫn
+        # bị padding pha loãng nhẹ). topk_ratio = phần node giữ lại; topk_min = sàn để
+        # đồ thị nhỏ không bị cắt còn quá ít node.
+        self.topk_ratio = 0.5
+        self.topk_min   = 12
+
     def forward(self, x: torch.Tensor, edge_index: torch.Tensor):
         """
         Forward pass không trả về attention weights (inference nhanh).
@@ -127,6 +135,53 @@ class GAT(torch.nn.Module):
             x, edge_index, return_attention_weights=True
         )
         return x, alpha   # alpha: [E, 1]
+
+    def graph_latent(self, x: torch.Tensor, edge_index: torch.Tensor,
+                     return_nodes: bool = False):
+        """
+        Graph-level latent bằng TOP-K ATTENTION-MASKED POOLING (chống camo dilution).
+
+        Trọng số mỗi node = tổng attention mà node NHẬN ĐƯỢC (các node khác chú ý tới
+        nó). Khác với soft attention-weighting (mọi node đều góp, benign-padding vẫn
+        pha loãng nhẹ), ở đây ta CHỈ giữ top-k node attention cao nhất rồi pool trong
+        số chúng → benign-padding (attention thấp) bị LOẠI HẲN trước MLP. Đây là cách
+        tấn công gốc rễ camouflage: kẻ tấn công chèn benign quanh APT-core, nhưng các
+        node đó cấu trúc ngoại vi → attention thấp → không lọt top-k.
+
+        Returns:
+            pooled [1, out_channels]  (và (node_emb, alpha) nếu return_nodes=True)
+        """
+        h = F.dropout(x, p=self.dropout, training=self.training)
+        h = self.conv1(h, edge_index)
+        if h.size(0) > 1:
+            h = self.bn1(h)
+        h = F.elu(h)
+        h = F.dropout(h, p=self.dropout, training=self.training)
+        out, (ei_out, alpha) = self.conv2(h, edge_index, return_attention_weights=True)
+
+        a   = alpha.mean(dim=-1) if alpha.dim() > 1 else alpha   # [E']
+        src = ei_out[0]                                          # node được chú ý tới
+        N   = out.size(0)
+        w   = torch.zeros(N, device=out.device, dtype=out.dtype)
+        w   = w.index_add(0, src, a)                            # attention nhận được / node
+
+        if float(w.sum()) <= 0:
+            pooled = out.mean(dim=0, keepdim=True)              # fallback (đồ thị rỗng cạnh)
+        else:
+            # ── Top-k masking: giữ k node attention cao nhất, loại phần còn lại ──
+            k = max(self.topk_min, int(math.ceil(self.topk_ratio * N)))
+            k = min(k, N)
+            if k < N:
+                topv, topi = torch.topk(w, k)                  # k node trội nhất
+                mask = torch.zeros_like(w)
+                mask[topi] = w[topi]                           # zero-out phần đuôi
+                w = mask
+            wn     = (w / w.sum()).unsqueeze(-1)               # [N, 1] tổng = 1 (chỉ top-k > 0)
+            pooled = (out * wn).sum(dim=0, keepdim=True)       # [1, out_channels]
+
+        if return_nodes:
+            return pooled, out, alpha
+        return pooled
 
 
 # ─────────────────────────────────────────────────────────────────────────────
@@ -197,29 +252,38 @@ class DetectionMLP(nn.Module):
         self,
         input_dim: int = 20,
         hidden_dim: int = 32,
-        ewc_lambda: float = 400.0,
+        ewc_lambda: float = 8.0,
+        hidden_dims: list = None,
     ):
         super().__init__()
-        # Sequential khop chinh xac voi checkpoint mlp.pth:
-        #   net.0 = Linear(input_dim, hidden_dim)
-        #   net.1 = ReLU
-        #   net.2 = Linear(hidden_dim, 2)
-        # Dropout KHONG nam trong Sequential (tranh shift index -> key mismatch)
-        self.net = nn.Sequential(
-            nn.Linear(input_dim, hidden_dim),  # net.0
-            nn.ReLU(),                          # net.1
-            nn.Linear(hidden_dim, 2),           # net.2
-        )
+        # hidden_dims tong quat hoa kien truc classifier (cho RQ3 architecture swap):
+        #   None / [hidden_dim] -> MLP goc (mlp.pth): net.0=Linear(in,h), net.1=ReLU, net.2=Linear(h,2)
+        #   []                  -> Linear classifier:   net.0=Linear(in,2)
+        #   [64, 32]            -> Deep MLP:             net.0..net.4
+        # Dropout KHONG nam trong Sequential (tranh shift index -> key mismatch voi checkpoint).
+        if hidden_dims is None:
+            hidden_dims = [hidden_dim]
+        self.hidden_dims = list(hidden_dims)
+        layers = []
+        prev = input_dim
+        for h in self.hidden_dims:
+            layers.append(nn.Linear(prev, h))
+            layers.append(nn.ReLU())
+            prev = h
+        layers.append(nn.Linear(prev, 2))     # head -> 2 logits
+        self.net = nn.Sequential(*layers)
         self.dropout = nn.Dropout(0.2)
         self.ewc_lambda = ewc_lambda
         self.fisher_dict: dict = {}     # param_name -> Fisher diagonal tensor
         self.optimal_params: dict = {}  # param_name -> W* tensor (anchor snapshot)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = self.net[0](x)          # Linear
-        x = self.net[1](x)          # ReLU
-        x = self.dropout(x)         # Dropout (manual, khong trong Sequential)
-        x = self.net[2](x)          # Linear -> 2 logits
+        # Chay het cac layer tru head, ap dropout ngay truoc head (giu nguyen hanh vi
+        # MLP goc: Linear -> ReLU -> Dropout -> Linear), roi softmax.
+        for layer in self.net[:-1]:
+            x = layer(x)
+        x = self.dropout(x)
+        x = self.net[-1](x)         # head -> 2 logits
         return F.softmax(x, dim=-1)
 
     def compute_fisher(
@@ -248,7 +312,6 @@ class DetectionMLP(nn.Module):
             for name, param in self.named_parameters()
             if param.requires_grad
         }
-        criterion = nn.CrossEntropyLoss()
         count = 0
 
         for x_batch, y_batch in anchor_data_loader:
@@ -257,8 +320,13 @@ class DetectionMLP(nn.Module):
             x_batch = x_batch.to(device)
             y_batch = y_batch.to(device)
             self.zero_grad()
-            output = self.forward(x_batch)
-            loss = criterion(output, y_batch)
+            # forward() tra ve SOFTMAX probs. Truoc day dung nn.CrossEntropyLoss(probs)
+            # = log_softmax(softmax(logits)) -> double softmax -> gradient bi det
+            # -> Fisher ~ 0 -> EWC penalty = 0 (vo nghia). Sua: dung NLL tren log-probs,
+            # KHOP chinh xac voi training loss F.nll_loss(log(probs), y).
+            output   = self.forward(x_batch)             # softmax probs [B, 2]
+            log_prob = torch.log(output + 1e-9)
+            loss     = F.nll_loss(log_prob, y_batch)
             loss.backward()
             for name, param in self.named_parameters():
                 if param.requires_grad and param.grad is not None:
@@ -267,8 +335,11 @@ class DetectionMLP(nn.Module):
 
         n = max(count, 1)
         self.fisher_dict = {name: f / n for name, f in fisher.items()}
+        # Diagnostic: tong norm Fisher. Neu ~0 -> softmax bao hoa / anchor vo nghia.
+        total_norm = sum(f.norm().item() for f in self.fisher_dict.values())
         self.eval()
-        print(f"[EWC] Computed Fisher Information on {count} anchor samples.")
+        print(f"[EWC] Computed Fisher Information on {count} anchor samples "
+              f"| total Fisher norm={total_norm:.6e}")
 
     def ewc_loss(self) -> torch.Tensor:
         """
@@ -286,3 +357,34 @@ class DetectionMLP(nn.Module):
                 loss = loss + (fisher * (param - opt_param) ** 2).sum()
 
         return (self.ewc_lambda / 2.0) * loss
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Classifier factory (RQ3 architecture swap)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# Kien truc classifier theo ten -> hidden_dims. Tat ca deu la DetectionMLP nen
+# dung chung EWC (compute_fisher / ewc_loss) khong can sua gi.
+CLASSIFIER_ARCHS = {
+    "mlp":    [32],        # A0 — kien truc goc (khop mlp.pth)
+    "linear": [],          # A1 — Linear(input_dim, 2)
+    "deep":   [64, 32],    # A3 — MLP sau hon
+}
+
+
+def make_classifier(name: str = "mlp", input_dim: int = 20,
+                    ewc_lambda: float = 8.0) -> DetectionMLP:
+    """
+    Tao DetectionMLP voi kien truc head tuong ung ten (cho RQ3).
+      name in {"mlp", "linear", "deep"}; mac dinh "mlp" (khop checkpoint goc).
+    """
+    key = (name or "mlp").lower()
+    if key not in CLASSIFIER_ARCHS:
+        raise ValueError(
+            f"Unknown classifier '{name}'. Choices: {list(CLASSIFIER_ARCHS)}"
+        )
+    return DetectionMLP(
+        input_dim=input_dim,
+        hidden_dims=CLASSIFIER_ARCHS[key],
+        ewc_lambda=ewc_lambda,
+    )

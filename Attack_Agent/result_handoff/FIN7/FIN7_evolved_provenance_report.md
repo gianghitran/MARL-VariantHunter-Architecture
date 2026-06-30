@@ -1,11 +1,11 @@
 # FIN7 evolved provenance report
 
-- DOT: `D:\notebook_UITNam3\Nam3_ki2\dacn\TAGAPT\TAGAPT_APTDetection\Attack_Agent\result_handoff\FIN7/FIN7_evolved_provenance.dot`
+- DOT: `/home/tmkhiem/nmuggle/LLM-ProvenanceGraph_APTDetection/Attack_Agent/result_handoff/FIN7/FIN7_evolved_provenance.dot`
 - Quality valid: `True`
-- Nodes: `47`
-- Edges: `62`
+- Nodes: `43`
+- Edges: `58`
 - Clusters: `4`
-- Total reward: `0.7742`
+- Total reward: `0.7670`
 - Transition quality: `0.6585`
 - Cluster validity: `1.0000`
 
@@ -16,4 +16,4 @@
 4. `T1053` Scheduled Task/Job (execution)
 
 ## Pruned Techniques
-- `T1608.005`: weak transition and stronger/equal bypass (incoming=0.2100, bypass=0.3524)
+- `T1584.001`: weak transition and stronger/equal bypass (incoming=0.2100, bypass=0.3524)
